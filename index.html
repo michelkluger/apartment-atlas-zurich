@@ -500,10 +500,10 @@ function drawMap(){
     el('text', {x:X(he) + 4, y:Y(hn) - k * s - 4, class:'lbl'}, g, k + ' km');
   }
   dots(g, X, Y, r => r.E, r => r.N);
-  const hx = X(he), hy = Y(hn); // a plain station clock: white face, two hands
-  el('circle', {cx:hx, cy:hy, r:10, fill:'#fff', stroke:'#1A2230', 'stroke-width':2.2}, g);
-  el('path', {d:`M${hx} ${hy}V${hy - 6.5}M${hx} ${hy}L${hx + 5} ${hy + 2}`, stroke:'#1A2230', 'stroke-width':1.8, 'stroke-linecap':'round'}, g);
-  el('text', {x:hx + 14, y:hy + 4, class:'lbl', style:'fill:var(--ink);font-weight:700'}, g, 'Zürich HB');
+  const hx = X(he), hy = Y(hn); // Swiss flag, same as on the roof
+  el('rect', {x:hx - 8, y:hy - 8, width:16, height:16, rx:2, fill:'#D52B1E', stroke:'var(--sheet)', 'stroke-width':1.5}, g);
+  el('path', {d:`M${hx - 4.5} ${hy}h9M${hx} ${hy - 4.5}v9`, stroke:'#fff', 'stroke-width':3}, g);
+  el('text', {x:hx + 13, y:hy + 4, class:'lbl', style:'fill:var(--ink);font-weight:700'}, g, 'Zürich HB');
 }
 
 function drawSize(){
