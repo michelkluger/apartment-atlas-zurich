@@ -40,17 +40,58 @@ def km(a, b):
     return 12742 * math.asin(math.sqrt(h))
 
 
-# 1. Flatfox: map pins in the bbox (cap 1000), then full listings in batches
-def fetch_listings():
-    q = urllib.parse.urlencode({**BBOX, "max_count": 1000, "offer_type": "SALE", "object_category": "APARTMENT"})
-    pins = get(f"https://flatfox.ch/api/v1/pin/?{q}")
-    assert len(pins) < 1000, "pin cap hit: split the bbox"
-    pks, out = [p["pk"] for p in pins], []
-    for i in range(0, len(pks), 40):
-        qs = "&".join(f"pk={k}" for k in pks[i:i + 40])
-        out += get(f"https://flatfox.ch/api/v1/public-listing/?{qs}&limit=40")["results"]
-        time.sleep(0.5)
+# 1. Flatfox: map pins (capped at 1000 per box, so split boxes that hit the cap), then full listings in batches of 40
+def pins(offer, box=BBOX):
+    q = urllib.parse.urlencode({**box, "max_count": 1000, "offer_type": offer, "object_category": "APARTMENT"})
+    got = get(f"https://flatfox.ch/api/v1/pin/?{q}")
+    if len(got) < 1000:
+        return {p["pk"]: p for p in got}
+    mx, my = (box["east"] + box["west"]) / 2, (box["north"] + box["south"]) / 2
+    out = {}
+    for w, e in ((box["west"], mx), (mx, box["east"])):
+        for s, n in ((box["south"], my), (my, box["north"])):
+            out.update(pins(offer, dict(east=e, west=w, north=n, south=s)))
     return out
+
+
+def details(pks, workers=4):
+    chunks = [pks[i:i + 40] for i in range(0, len(pks), 40)]
+    pages = pmap(lambda c: get("https://flatfox.ch/api/v1/public-listing/?" + "&".join(f"pk={k}" for k in c) + "&limit=40")["results"], chunks, workers)
+    return [l for p in pages for l in p]
+
+
+def fetch_listings():
+    return details(list(pins("SALE")))
+
+
+# 1b. Rentals, trimmed to what the rent estimate needs: [lat, lon, m², rooms, net rent/month]
+def fetch_rentals():
+    ls = [l for l in details(list(pins("RENT"))) if not l.get("is_furnished") and not l.get("is_temporary")]
+    # ~40% of ads give only the gross rent: convert with the net/gross share seen in ads that state both
+    share = statistics.median(l["rent_net"] / l["rent_gross"] for l in ls if l.get("rent_net") and l.get("rent_gross") and l["rent_gross"] >= l["rent_net"])
+    print(f"rentals: {len(ls)} unfurnished, net = {share:.3f} x gross")
+    out = []
+    for l in ls:
+        m2, net = l.get("surface_living") or l.get("livingspace"), l.get("rent_net") or (l.get("rent_gross") or 0) * share
+        if l["offer_type"] == "RENT" and m2 and net and l.get("latitude") \
+                and 10 <= net / m2 <= 80:  # drops typos and per-room/parking prices
+            out.append([round(l["latitude"], 5), round(l["longitude"], 5), m2,
+                        float(l["number_of_rooms"]) if l.get("number_of_rooms") else None, net])
+    return out
+
+
+def expected_rent(pt, m2, rentals):
+    """Median net rent per m² of similar-sized rentals nearby, times this flat's m². Widens the radius until 8 comparables."""
+    if not m2:
+        return None
+    comps = [r for r in rentals if 0.7 * m2 <= r[2] <= 1.4 * m2 and abs(r[0] - pt[0]) < 0.11 and abs(r[1] - pt[1]) < 0.16]
+    for radius in (1.5, 3, 5, 8, 12):
+        near = [r for r in comps if km(pt, (r[0], r[1])) <= radius]
+        if len(near) >= 8:
+            break
+    if len(near) < 5:
+        return None
+    return [round(statistics.median(r[4] / r[2] for r in near) * m2 / 10) * 10, len(near), radius]
 
 
 def pmap(fn, items, workers=8):
@@ -150,6 +191,7 @@ def main():
     gem = fetch_gemeinde(raw)  # local, no cache needed
     com = cached("04_commute.json", lambda: fetch_commute(pts))
     vac = load_vacancy()
+    rentals = cached("05_rentals.json", fetch_rentals)
 
     rows = []
     for l in raw:
@@ -173,14 +215,20 @@ def main():
     med = statistics.median(ppm)
     for r in rows:
         r["ppm"] = round(r["price"] / r["m2"]) if r["m2"] else None
-    out = dict(built=time.strftime("%Y-%m-%d"), median_ppm=round(med), vacancy_year=2026, rows=rows)
+        er = expected_rent((r["lat"], r["lon"]), r["m2"], rentals)
+        r["rent"], r["rent_n"], r["rent_km"] = er or (None, None, None)
+        r["ptr"] = round(r["price"] / (r["rent"] * 12), 1) if r["rent"] else None  # price-to-rent: years of rent the price buys
+    ptr = [r["ptr"] for r in rows if r["ptr"]]
+    out = dict(built=time.strftime("%Y-%m-%d"), median_ppm=round(med), median_ptr=round(statistics.median(ptr), 1),
+               rentals=len(rentals), vacancy_year=2026, rows=rows)
     (Path(__file__).parent / "listings.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
 
     # self-check
     assert rows and all(r["gde"] for r in rows[:5]), "Gemeinde lookup failed"
     n = len(rows)
-    print(f"{n} listings, median {med:.0f} CHF/m²")
-    for f in ("m2", "floor", "year", "gde", "vac", "door"):
+    print(f"{n} listings, median {med:.0f} CHF/m²; {len(rentals)} rentals, median price-to-rent {out['median_ptr']}")
+    assert 10 < out["median_ptr"] < 60, "price-to-rent outside any plausible Swiss range"
+    for f in ("m2", "floor", "year", "gde", "vac", "door", "rent"):
         print(f"  {f:6} {sum(r[f] is not None for r in rows)}/{n}")
 
 
