@@ -4,123 +4,157 @@
 <title>Apartment Atlas Zürich</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700..800&family=Barlow+Condensed:wght@500;600;700&family=Instrument+Sans:wght@400..600&display=swap">
 <style>
-/* Layout: architect's drafting sheet. Hero = the whole market drawn as one apartment block (one window per listing), then a search panel, a ranked shortlist, and a two-column chart grid. */
+/* Layout: a Zürich residential street. Hero = the market as one apartment house (one window per listing; shutters down when it doesn't match), notices pinned in the stairwell hold the controls, ad clippings form the shortlist, enamel street signs head the charts. */
 :root{
-  --paper:#F3F5F1; --sheet:#FCFCFB; --ink:#14202B; --muted:#5E6A72; --line:#D6DCD9; --grid:rgba(31,95,173,.06); --gl:#E4E8E5;
-  --blue:#1F5FAD; --lit:#F2B632; --glass:#C6D0D7; --wall:#E8E3D8; --wall-line:#B9B2A3; --lake:#BCD8EA; --hb:#D52B1E; --faint:#C3C9C6; --sel:#D52B1E;
+  --plaster:#F6F1E7; --sheet:#FFFDF8; --ink:#1A2230; --muted:#646B73; --line:#E3DACB; --gl:#ECE5D8;
+  --enamel:#0B4EA2; --link:#0B4EA2; --blue:#0B4EA2; --geranium:#E2342B; --sel:#E2342B; --lit:#FFC845; --glow:none;
+  --roof:#B4502F; --roof-dark:#8E3B22; --shutter:#CFC6B4; --shutter-line:#B3A992; --leaf:#3F7A4A; --door:#3F7A4A;
+  --wall:#EFE6D3; --wall-line:#CDBFA6; --glass:#BFD3E0; --lake:#BCD8EA; --faint:#CEC6B8; --metal1:#EDEAE4; --metal2:#C9C5BD;
+  --shadow:rgba(60,40,10,.22);
   --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300;
   --q1:#86b6ef; --q2:#5598e7; --q3:#2a78d6; --q4:#1c5cab; --q5:#104281;
-  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
-  --body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --display:"Bricolage Grotesque","Arial Rounded MT Bold",system-ui,sans-serif;
+  --sign:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --tex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .32 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.09'/%3E%3C/svg%3E");
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#0E1317; --sheet:#151C21; --ink:#E6EBEE; --muted:#97A3AB; --line:#2A353D; --grid:rgba(111,166,232,.05); --gl:#222C33;
-  --blue:#7AAEEA; --lit:#F7C548; --glass:#2A3944; --wall:#1E272D; --wall-line:#3A4750; --lake:#2A5778; --hb:#E5483C; --faint:#3C474F; --sel:#FF6A5C;
+  --plaster:#12161C; --sheet:#1B2129; --ink:#E9ECEF; --muted:#9AA3AD; --line:#2C343E; --gl:#262D36;
+  --enamel:#2A62B8; --link:#82B2F2; --blue:#82B2F2; --geranium:#FF5A4E; --sel:#FF5A4E; --lit:#FFD15C; --glow:drop-shadow(0 0 3px rgba(255,209,92,.75));
+  --roof:#7A3826; --roof-dark:#5A2819; --shutter:#2E353E; --shutter-line:#222830; --leaf:#5FA46B; --door:#4C8A57;
+  --wall:#222932; --wall-line:#3A4450; --glass:#33414E; --lake:#2A5778; --faint:#3C454F; --metal1:#414952; --metal2:#2A3038;
+  --shadow:rgba(0,0,0,.45);
   --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#0ca30c;
   --q1:#184f95; --q2:#256abf; --q3:#3987e5; --q4:#6da7ec; --q5:#9ec5f4; color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --paper:#0E1317; --sheet:#151C21; --ink:#E6EBEE; --muted:#97A3AB; --line:#2A353D; --grid:rgba(111,166,232,.05); --gl:#222C33;
-  --blue:#7AAEEA; --lit:#F7C548; --glass:#2A3944; --wall:#1E272D; --wall-line:#3A4750; --lake:#2A5778; --hb:#E5483C; --faint:#3C474F; --sel:#FF6A5C;
+  --plaster:#12161C; --sheet:#1B2129; --ink:#E9ECEF; --muted:#9AA3AD; --line:#2C343E; --gl:#262D36;
+  --enamel:#2A62B8; --link:#82B2F2; --blue:#82B2F2; --geranium:#FF5A4E; --sel:#FF5A4E; --lit:#FFD15C; --glow:drop-shadow(0 0 3px rgba(255,209,92,.75));
+  --roof:#7A3826; --roof-dark:#5A2819; --shutter:#2E353E; --shutter-line:#222830; --leaf:#5FA46B; --door:#4C8A57;
+  --wall:#222932; --wall-line:#3A4450; --glass:#33414E; --lake:#2A5778; --faint:#3C454F; --metal1:#414952; --metal2:#2A3038;
+  --shadow:rgba(0,0,0,.45);
   --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#0ca30c;
   --q1:#184f95; --q2:#256abf; --q3:#3987e5; --q4:#6da7ec; --q5:#9ec5f4; color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{margin:0;background-color:var(--paper);color:var(--ink);font:15px/1.5 var(--body);
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+body{margin:0;background:var(--tex),var(--plaster);color:var(--ink);font:15px/1.5 var(--body)}
 .wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
-h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:800;font-stretch:112%;line-height:1;letter-spacing:-.01em}
-h2{font-size:1.15rem;font-weight:700;font-stretch:105%}
-a{color:var(--blue)}
+h1{font-size:clamp(2.4rem,5.5vw,4.1rem);font-weight:800;line-height:.95;letter-spacing:-.025em}
+h2{font-size:1.2rem;font-weight:700;letter-spacing:-.01em}
+a{color:var(--link)}
 .mono,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.eyebrow{font:500 .72rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.eyebrow{font:600 .8rem/1 var(--sign);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+
+/* enamel street sign: blue plate, white inner rim, two screws */
+.listhead h2,.charts h2{display:inline-block;background:radial-gradient(circle at 9px 50%,rgba(255,255,255,.9) 1.5px,transparent 2.2px),radial-gradient(circle at calc(100% - 9px) 50%,rgba(255,255,255,.9) 1.5px,transparent 2.2px),var(--enamel);
+  color:#fff;font:700 1.2rem/1.15 var(--sign);letter-spacing:.03em;padding:.32em 1.25em;border-radius:6px;box-shadow:inset 0 0 0 3px var(--enamel),inset 0 0 0 4.5px #fff,0 2px 4px var(--shadow)}
+.charts h2{font-size:1.05rem}
 
 /* hero */
-.hero{padding-block:36px 12px}
+.hero{padding-block:34px 14px}
 .hero .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:end}
-.lede{max-width:34rem;color:var(--muted);font-size:1.02rem;margin:14px 0 18px}
+.lede{max-width:34rem;color:var(--muted);font-size:1.04rem;margin:16px 0 18px}
 .lede b{color:var(--ink);font-weight:600}
-.facts{display:flex;flex-wrap:wrap;gap:8px 20px;font:500 .8rem/1.3 var(--mono);color:var(--muted)}
-.facts b{display:block;font:700 1.35rem/1.1 var(--display);font-stretch:100%;color:var(--ink)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 22px;font:500 .9rem/1.2 var(--sign);color:var(--muted);letter-spacing:.02em}
+.facts b{display:block;font:700 1.75rem/1.05 var(--sign);color:var(--ink);font-variant-numeric:tabular-nums}
 .block{min-width:0}
 .block svg{width:100%;height:auto;display:block}
 .block figcaption{font-size:.8rem;color:var(--muted);margin-top:6px}
-.lbl{font:500 11px var(--mono);fill:var(--muted)}
+.lbl{font:500 12px var(--mono);fill:var(--muted)}
+.plate{font:700 11px var(--sign);fill:#fff;letter-spacing:.04em}
 .win{cursor:pointer}
+.lit{filter:var(--glow)}
 
-/* panels */
-.panel{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:18px 20px;min-width:0}
-.panel .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
-.search{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:28px;margin-top:20px}
+/* panels and pinned notices */
+.panel{background:var(--sheet);border:1px solid var(--line);border-radius:4px;padding:18px 20px;min-width:0;box-shadow:0 6px 16px -10px var(--shadow)}
+.panel .sub{color:var(--muted);font-size:.86rem;margin:6px 0 12px}
+.notice{position:relative;border-radius:1px;padding-top:24px}
+.notice::before,.notice::after{content:"";position:absolute;top:9px;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.7) 0 1.5px,transparent 2.5px),var(--geranium);box-shadow:0 2px 2px var(--shadow)}
+.notice::before{left:12px}.notice::after{right:12px}
+.notice .eyebrow{color:var(--geranium);margin-bottom:6px}
+.search{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:28px;margin-top:22px}
 .ctrls{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 22px}
-.ctrl label{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;font-weight:500}
-.ctrl output{font-family:var(--mono);font-size:.8rem;color:var(--blue);white-space:nowrap}
-input[type=range]{width:100%;accent-color:var(--blue);margin:6px 0 0}
+.ctrl label{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;font-weight:500}
+.ctrl output{font:600 .95rem var(--sign);color:var(--link);white-space:nowrap;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--enamel);margin:6px 0 0}
 select{font:inherit;font-size:.85rem;width:100%;margin-top:4px;padding:5px 6px;border:1px solid var(--line);border-radius:4px;background:var(--sheet);color:var(--ink)}
 .weights{display:grid;gap:10px}
-.wrow{display:grid;grid-template-columns:12px minmax(0,1fr) 92px 58px;align-items:center;gap:10px;font-size:.85rem}
+.wrow{display:grid;grid-template-columns:12px minmax(0,1fr) 92px 58px;align-items:center;gap:10px;font-size:.86rem}
 .wrow input{margin:0}
-.wrow output{font:500 .75rem var(--mono);color:var(--muted)}
-.sw{width:12px;height:12px;border-radius:3px}
-.count{font:500 .82rem var(--mono);color:var(--muted);margin-top:14px}
-.count b{color:var(--ink)}
+.wrow output{font:600 .85rem var(--sign);color:var(--muted);letter-spacing:.03em}
+.sw{width:12px;height:12px;border-radius:50%}
+.count{font:500 .95rem var(--sign);color:var(--muted);margin-top:14px;letter-spacing:.02em}
+.count b{color:var(--ink);font-size:1.15rem}
 
-/* shortlist */
-.listhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px;margin:34px 0 12px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.card{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;min-width:0}
-.card:hover{border-color:var(--blue)}
+/* shortlist: ad clippings */
+.listhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:38px 0 16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.card{position:relative;background:var(--sheet);border:1px solid var(--line);border-radius:2px;padding:15px 16px 14px;display:grid;gap:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;min-width:0;
+  box-shadow:0 8px 14px -10px var(--shadow);transform:rotate(-.45deg);transition:transform .15s}
+.card:nth-child(even){transform:rotate(.4deg)}
+.card:hover{transform:rotate(0) translateY(-2px);border-color:var(--link)}
 a.card{text-decoration:none}
-.card.on{border-color:var(--sel);box-shadow:0 0 0 1px var(--sel)}
-.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.card .place{font:700 1.05rem/1.2 var(--display);font-stretch:100%;overflow-wrap:anywhere}
-.card .rank{font:500 .75rem var(--mono);color:var(--muted);white-space:nowrap}
-.card .price{font:700 1.35rem/1 var(--display);font-stretch:95%}
-.card .ppm{font:500 .75rem var(--mono);color:var(--muted)}
-.card .spec{font:500 .8rem/1.4 var(--mono);color:var(--ink)}
-.card .meta{font-size:.8rem;color:var(--muted);line-height:1.4}
-.card .ttl{font-size:.8rem;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
-.sbar{display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden;background:var(--gl)}
-.sbar i{display:block;height:100%}
+.card.on{border-color:var(--sel)}
+.card.on::before{content:"";position:absolute;top:-7px;left:calc(50% - 7px);width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.7) 0 2px,transparent 3px),var(--geranium);box-shadow:0 2px 3px var(--shadow)}
+.card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card .place{font:700 1.12rem/1.15 var(--display);letter-spacing:-.01em;overflow-wrap:anywhere}
+.card .kt{font:600 .75rem var(--sign);color:var(--muted);letter-spacing:.06em}
+.nr{flex:none;background:var(--enamel);color:#fff;font:700 .85rem/1 var(--sign);letter-spacing:.03em;padding:5px 11px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--enamel),inset 0 0 0 3.2px #fff}
+.card .price{font:700 1.7rem/1 var(--sign);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.card .ppm{font:500 .85rem var(--sign);color:var(--muted);letter-spacing:.02em}
+.card .spec{font:600 .95rem/1.35 var(--sign);color:var(--ink);letter-spacing:.02em}
+.card .meta{font-size:.82rem;color:var(--muted);line-height:1.4}
+.card .ttl{font-size:.8rem;color:var(--muted);font-style:italic;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+/* score bar = a window box on its terracotta ledge */
+.sbar{display:flex;gap:2px;height:13px;padding-bottom:3px;border-bottom:3px solid var(--roof);background:linear-gradient(var(--gl),var(--gl)) 0 0/100% 10px no-repeat;border-radius:2px 2px 0 0}
+.sbar i{display:block;height:10px;border-radius:4px 4px 2px 2px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font:500 .7rem/1 var(--mono);padding:4px 6px;border-radius:3px;border:1px solid var(--line);color:var(--muted)}
-.chip.good{color:var(--ink);border-color:var(--blue)}
-.empty{grid-column:1/-1;color:var(--muted);padding:20px 0}
+.chip{font:600 .78rem/1 var(--sign);letter-spacing:.03em;padding:4px 7px;border-radius:3px;border:1px solid var(--line);color:var(--muted)}
+.chip.good{color:var(--ink);border-color:var(--leaf)}
+.empty{grid-column:1/-1;color:var(--muted);padding:20px 0;font-size:1rem}
+.empty b{font-family:var(--display);color:var(--ink)}
 
-/* detail */
-.detail{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 24px;align-items:start}
-.detail h3{font-size:1.4rem;font-weight:800;font-stretch:105%}
-.detail .open{align-self:center;font:600 .85rem var(--body);background:var(--blue);color:var(--sheet);padding:9px 14px;border-radius:4px;text-decoration:none;white-space:nowrap}
+/* detail = doorbell plate */
+.detail{margin-top:18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 24px;align-items:start}
+.detail h3{display:inline-block;margin-top:6px;background:linear-gradient(180deg,var(--metal1),var(--metal2));color:var(--ink);font:700 1.3rem/1.2 var(--sign);letter-spacing:.02em;padding:6px 14px;border-radius:4px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.18),0 1px 2px var(--shadow)}
+.detail .open{align-self:center;display:inline-flex;align-items:center;gap:10px;font:600 .9rem var(--body);background:var(--enamel);color:#fff;padding:8px 16px 8px 9px;border-radius:999px;text-decoration:none;white-space:nowrap;box-shadow:0 2px 4px var(--shadow)}
+.detail .open::before{content:"";width:20px;height:20px;border-radius:50%;background:radial-gradient(circle,var(--lit) 0 4px,#fff 4.5px 7px,var(--metal2) 7.5px)}
 .kv{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 18px;margin-top:6px}
-.kv div{font-size:.78rem;color:var(--muted)}
-.kv b{display:block;font:600 .95rem var(--mono);color:var(--ink)}
+.kv div{font-size:.8rem;color:var(--muted)}
+.kv b{display:block;font:600 1.05rem var(--sign);color:var(--ink);letter-spacing:.02em}
 
 /* charts */
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.78rem;color:var(--muted);align-items:center}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--muted);align-items:center}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:12px}
 .grid2 svg{width:100%;height:auto;display:block}
-.axis text{font:400 11px var(--mono);fill:var(--muted)}
-.axis .al{font:500 11px var(--body);fill:var(--muted)}
+.grid2 .panel .sub{margin-top:10px}
+.axis text{font:500 12px var(--mono);fill:var(--muted)}
+.axis .al{font:500 11.5px var(--body);fill:var(--muted)}
 .gl{stroke:var(--gl);stroke-width:1}
 .dot{cursor:pointer}
-#tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--sheet);font-size:.78rem;line-height:1.4;padding:8px 10px;border-radius:4px;max-width:260px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--sheet);font-size:.8rem;line-height:1.4;padding:8px 10px;border-radius:4px;max-width:260px}
 #tip b{font-weight:600}
 
-/* method */
-.method{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-block:34px 48px;font-size:.85rem;color:var(--muted)}
-.method h3{font-size:1rem;color:var(--ink);margin-bottom:6px}
+/* footer = notice from the building management */
+.method{margin-block:38px 48px;font-size:.86rem;color:var(--muted)}
+.method > h2{font-size:1.3rem;margin-bottom:14px}
+.method .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.method h3{font:700 1.05rem var(--sign);letter-spacing:.03em;color:var(--ink);margin-bottom:6px}
 .method ul{margin:0;padding-left:18px}
 .method li{margin-bottom:4px}
 
 @media (max-width:900px){
-  .hero .wrap,.search,.grid2,.method{grid-template-columns:minmax(0,1fr)}
+  .hero .wrap,.search,.grid2,.method .cols{grid-template-columns:minmax(0,1fr)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -140,13 +174,15 @@ a.card{text-decoration:none}
 
 <main class="wrap">
   <section class="search">
-    <div class="panel">
+    <div class="panel notice">
+      <div class="eyebrow">Hausordnung</div>
       <h2>What you need</h2>
       <p class="sub">Hard limits. A listing outside any of them drops out of the ranking.</p>
       <div class="ctrls" id="ctrls"></div>
       <div class="count" id="count"></div>
     </div>
-    <div class="panel">
+    <div class="panel notice">
+      <div class="eyebrow">Wunschliste</div>
       <h2>What matters most</h2>
       <p class="sub">Each listing is ranked against the others that pass your limits. The colours are reused in the score bars.</p>
       <div class="weights" id="weights"></div>
@@ -159,7 +195,7 @@ a.card{text-decoration:none}
 
   <div class="listhead"><h2>The market around Zürich</h2>
     <div class="legend" id="legend"></div></div>
-  <div class="grid2">
+  <div class="grid2 charts">
     <section class="panel"><h2>Where they are</h2><p class="sub">Straight-line rings every 10 km from Zürich HB.</p><svg id="map" role="img" aria-label="Map of listings around Zürich"></svg></section>
     <section class="panel"><h2>Price against living area</h2><p class="sub">Diagonals mark equal price per m².</p><svg id="size" role="img" aria-label="Price against living area"></svg></section>
     <section class="panel"><h2>What a shorter commute costs</h2><p class="sub">Door to Zürich HB on a Tuesday 07:30 departure, against price per m².</p><svg id="commute" role="img" aria-label="Commute time against price per square metre"></svg></section>
@@ -168,7 +204,10 @@ a.card{text-decoration:none}
     <section class="panel"><h2>Price per m² by distance</h2><p class="sub">Straight-line km from Zürich HB.</p><svg id="dist" role="img" aria-label="Price per square metre against distance"></svg></section>
   </div>
 
-  <section class="method">
+  <section class="method panel notice">
+    <div class="eyebrow">Mitteilung der Verwaltung</div>
+    <h2>About these numbers</h2>
+    <div class="cols">
     <div><h3>Where the data comes from</h3><ul>
       <li><a href="https://flatfox.ch" target="_blank" rel="noopener">Flatfox</a> public listings API: price, area, rooms, floor, year built, location.</li>
       <li><a href="https://stats.swiss/vis?lc=de&df%5bds%5d=disseminate&df%5bid%5d=DF_LWZ_1&df%5bag%5d=CH1.LWZ" target="_blank" rel="noopener">BFS Leerwohnungszählung 2026</a>: empty-dwelling rate per Gemeinde, counted on 1 June.</li>
@@ -185,6 +224,7 @@ a.card{text-decoration:none}
       <li>Asking prices, not sale prices. Ads without a price are left out.</li>
       <li>Vacancy counts all dwellings, rented and owned. Tax rates, Nebenkosten and renovation funds are not in yet.</li>
     </ul></div>
+    </div>
   </section>
 </main>
 <div id="tip" hidden></div>
@@ -285,7 +325,7 @@ function buildControls(){
   const wb = $('#weights');
   for (const c of CRIT){
     const r = document.createElement('div'); r.className = 'wrow';
-    r.innerHTML = `<span class="sw" style="background:${c.c}"></span><label for="w-${c.k}">${c.name}</label><input type="range" id="w-${c.k}" min="0" max="3" step="1" value="${W[c.k]}"><output></output>`;
+    r.innerHTML = `<span class="sw" style="background:${c.c}"></span><label for="w-${c.k}">${c.name}</label><input type="range" id="w-${c.k}" min="0" max="3" step="1" value="${W[c.k]}" style="accent-color:${c.c}"><output></output>`;
     wb.appendChild(r);
     const inp = r.querySelector('input'), out = r.querySelector('output');
     const upd = () => { W[c.k] = +inp.value; out.textContent = LEVEL[W[c.k]]; };
@@ -303,9 +343,9 @@ function chips(r){
 }
 function card(r, i){
   return `<a class="card ${r.id === sel ? 'on' : ''}" data-id="${r.id}" href="${r.url}" target="_blank" rel="noopener">
-    <div class="top"><span class="place">${esc(r.gname || r.city)}${r.kt ? ' <span class="rank">' + r.kt + '</span>' : ''}</span><span class="rank">#${i + 1} · ${Math.round(r.score)}</span></div>
+    <div class="top"><span class="place">${esc(r.gname || r.city)}${r.kt ? ' <span class="kt">' + r.kt + '</span>' : ''}</span><span class="nr">Nr. ${i + 1}</span></div>
     <div class="ttl">${esc(r.title)}</div>
-    <div><div class="price">${chf(r.price)}</div><div class="ppm">${r.ppm ? fmt(r.ppm) + ' CHF/m²' : 'area unknown'}</div></div>
+    <div><div class="price">${chf(r.price)}</div><div class="ppm">${r.ppm ? fmt(r.ppm) + ' CHF/m²' : 'area unknown'} · score ${Math.round(r.score)}</div></div>
     <div class="spec">${roomsTxt(r.rooms)} · ${r.m2 ?? '?'} m² · ${floorTxt(r.floor)} · ${r.year ?? 'year ?'}</div>
     <div class="meta">${r.door != null ? `<b>${r.door} min</b> to Zürich HB from ${esc(r.station)}${r.transfers ? ', ' + r.transfers + ' change' + (r.transfers > 1 ? 's' : '') : ', direct'}` : 'No commute data'}</div>
     ${sbar(r)}<div class="chips">${chips(r)}</div></a>`;
@@ -313,7 +353,7 @@ function card(r, i){
 function drawCards(M){
   const box = $('#cards');
   $('#listnote').textContent = M.length ? `top ${Math.min(6, M.length)} of ${M.length}` : '';
-  if (!M.length){ box.innerHTML = '<p class="empty">No listing passes all your limits. Loosen the budget or the commute first; they cut the most.</p>'; return; }
+  if (!M.length){ box.innerHTML = '<p class="empty"><b>Leider nichts frei.</b> No listing passes all your limits. Loosen the budget or the commute first; they cut the most.</p>'; return; }
   box.innerHTML = M.slice(0, 6).map(card).join('');
   box.querySelectorAll('.card').forEach(b => b.addEventListener('click', () => setTimeout(() => select(+b.dataset.id))));
 }
@@ -341,41 +381,79 @@ function drawDetail(){
 }
 
 // ---------- the building (hero) ----------
+// One window per listing on its floor: shutter down = outside your limits, lit with a geranium box = a match.
 function drawBuilding(){
   const svg = $('#building'); svg.replaceChildren();
   const known = ROWS.filter(r => r.floor != null);
   const top = Math.min(8, Math.max(...known.map(r => r.floor)));
   const floors = []; for (let f = top; f >= -1; f--) floors.push(f);
-  const COLS = 26, WW = 13, WH = 15, GX = 5, GY = 6, PAD = 18, LBL = 56;
+  const COLS = 24, WW = 13, WH = 15, GX = 6, GY = 10, PAD = 16, LBL = 62, STAIR = 46, YARD = 72, ROOF = 56, T = ROOF + 34;
   const by = f => known.filter(r => (f === top ? r.floor >= top : f === -1 ? r.floor < 0 : r.floor === f)).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
-  const rowsOf = f => Math.max(1, Math.ceil(by(f).length / COLS));
-  const fh = f => rowsOf(f) * (WH + GY) + 14;
-  const BW = PAD * 2 + COLS * (WW + GX) - GX, X0 = LBL;
-  const H = 30 + floors.reduce((s, f) => s + fh(f), 0) + 22;
-  svg.setAttribute('viewBox', `0 0 ${X0 + BW + 10} ${H}`);
-  const groundY = 30 + floors.filter(f => f >= 0).reduce((s, f) => s + fh(f), 0);
-  // roof parapet and attic setback
-  el('rect', {x:X0 + BW * 0.55, y:8, width:BW * 0.3, height:22, fill:'var(--wall)', stroke:'var(--wall-line)'}, svg);
-  el('rect', {x:X0 - 6, y:26, width:BW + 12, height:5, fill:'var(--wall-line)'}, svg);
-  // facade above ground, basement below (dashed, as on a section drawing)
-  el('rect', {x:X0, y:31, width:BW, height:groundY - 31, fill:'var(--wall)', stroke:'var(--wall-line)'}, svg);
-  el('rect', {x:X0, y:groundY, width:BW, height:H - 22 - groundY, fill:'none', stroke:'var(--wall-line)', 'stroke-dasharray':'4 3'}, svg);
-  el('line', {x1:0, x2:X0 + BW + 10, y1:groundY, y2:groundY, stroke:'var(--ink)', 'stroke-width':1.5}, svg);
-  let y = 31;
+  const fh = f => Math.max(1, Math.ceil(by(f).length / COLS)) * (WH + GY) + 12;
+  const BW = PAD * 2 + COLS * (WW + GX) - GX + STAIR, X0 = LBL;
+  const above = floors.filter(f => f >= 0).reduce((s, f) => s + fh(f), 0), below = fh(-1);
+  const groundY = T + above, H = groundY + below + 6, Wd = X0 + BW + YARD;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${H}`);
+  const defs = el('defs', {}, svg);
+  const pat = el('pattern', {id:'slats', width:4, height:3, patternUnits:'userSpaceOnUse'}, defs);
+  el('rect', {width:4, height:3, fill:'var(--shutter)'}, pat); el('rect', {y:2, width:4, height:1, fill:'var(--shutter-line)'}, pat);
+  // gable roof with tile rows, chimney and the flag on the ridge
+  const rx0 = X0 - 14, rx1 = X0 + BW + 14, apex = X0 + BW / 2, roofD = `M${rx0} ${T}L${apex} ${T - ROOF}L${rx1} ${T}Z`;
+  el('path', {d:roofD}, el('clipPath', {id:'roofclip'}, defs));
+  el('rect', {x:apex + BW * 0.24, y:T - ROOF * 0.62 - 14, width:15, height:30, fill:'var(--roof-dark)'}, svg);
+  el('rect', {x:apex + BW * 0.24 - 2, y:T - ROOF * 0.62 - 17, width:19, height:4, fill:'var(--roof-dark)'}, svg);
+  el('path', {d:roofD, fill:'var(--roof)'}, svg);
+  const tiles = el('g', {'clip-path':'url(#roofclip)', stroke:'var(--roof-dark)', 'stroke-width':1.2}, svg);
+  for (let y = T - 9; y > T - ROOF; y -= 10) el('line', {x1:rx0, x2:rx1, y1:y, y2:y}, tiles);
+  const fy = T - ROOF - 30;
+  el('line', {x1:apex, x2:apex, y1:T - ROOF + 2, y2:fy - 2, stroke:'var(--ink)', 'stroke-width':1.6}, svg);
+  el('rect', {x:apex + 1, y:fy, width:17, height:17, fill:'#D52B1E'}, svg);
+  el('path', {d:`M${apex + 5} ${fy + 8.5}h9M${apex + 9.5} ${fy + 4}v9`, stroke:'#fff', 'stroke-width':3.2}, svg);
+  // facade, stairwell column, basement drawn as a section
+  el('rect', {x:X0, y:T, width:BW, height:above, fill:'var(--wall)', stroke:'var(--wall-line)'}, svg);
+  el('rect', {x:X0, y:groundY, width:BW, height:below, fill:'none', stroke:'var(--wall-line)', 'stroke-dasharray':'4 3'}, svg);
+  const SX = X0 + BW - STAIR, SC = SX + STAIR / 2;
+  el('rect', {x:SX, y:T, width:STAIR, height:above, fill:'var(--wall-line)', opacity:.25}, svg);
+  el('line', {x1:0, x2:Wd, y1:groundY, y2:groundY, stroke:'var(--ink)', 'stroke-width':2}, svg);
+  let y = T;
   for (const f of floors){
     const list = by(f), h = fh(f);
-    if (f !== top) el('line', {x1:X0, x2:X0 + BW, y1:y, y2:y, stroke:'var(--wall-line)'}, svg);
-    el('text', {x:X0 - 8, y:y + h / 2 + 4, 'text-anchor':'end', class:'lbl'}, svg, (f === top ? '≥' : '') + floorTxt(f));
+    if (f !== top && f !== -1) el('line', {x1:X0, x2:X0 + BW, y1:y, y2:y, stroke:'var(--wall-line)'}, svg);
+    const lab = f === -1 ? 'Keller' : (f === top ? '≥' : '') + floorTxt(f), pw = lab.length * 5.6 + 14;
+    el('rect', {x:X0 - 8 - pw, y:y + h / 2 - 9, width:pw, height:18, rx:3, fill:'var(--enamel)'}, svg);
+    el('text', {x:X0 - 8 - pw / 2, y:y + h / 2 + 4, 'text-anchor':'middle', class:'plate'}, svg, lab);
     list.forEach((r, i) => {
-      const cx = X0 + PAD + (i % COLS) * (WW + GX), cy = y + 7 + Math.floor(i / COLS) * (WH + GY);
-      const w = el('rect', {x:cx, y:cy, width:WW, height:WH, rx:1.5, class:'win',
-        fill:r.ok ? 'var(--lit)' : 'var(--glass)', stroke:r.id === sel ? 'var(--sel)' : 'none', 'stroke-width':2.5}, svg);
-      hook(w, r);
+      const cx = X0 + PAD + (i % COLS) * (WW + GX), cy = y + 6 + Math.floor(i / COLS) * (WH + GY);
+      const g = el('g', {class:'win'}, svg);
+      el('rect', {x:cx, y:cy, width:WW, height:WH, rx:1.5, fill:r.ok ? 'var(--lit)' : 'url(#slats)', class:r.ok ? 'lit' : ''}, g);
+      if (r.ok){
+        el('rect', {x:cx - 1.5, y:cy + WH + 1, width:WW + 3, height:4, rx:1, fill:'var(--roof)'}, g);
+        [[2.5, 'var(--geranium)'], [6.5, 'var(--leaf)'], [10.5, 'var(--geranium)']].forEach(([dx, c]) => el('circle', {cx:cx + dx, cy:cy + WH, r:2.1, fill:c}, g));
+      }
+      if (r.id === sel) el('rect', {x:cx - 2.5, y:cy - 2.5, width:WW + 5, height:WH + 5, rx:3, fill:'none', stroke:'var(--sel)', 'stroke-width':2.5}, g);
+      hook(g, r);
     });
+    if (f > 0) el('rect', {x:SC - 5, y:y + h / 2 - 11, width:10, height:22, rx:5, fill:'var(--glass)'}, svg);
+    if (f === 0){ // front door, with today's match count as the enamel house number
+      const dw = 22, dh = Math.min(h - 18, 36), dx = SC - dw / 2, dy = groundY - dh, n = String(ROWS.filter(r => r.ok).length);
+      el('rect', {x:dx, y:dy, width:dw, height:dh, rx:3, fill:'var(--door)'}, svg);
+      el('rect', {x:dx + 4, y:dy + 4, width:dw - 8, height:dh * 0.35, rx:2, fill:'var(--glass)'}, svg);
+      el('circle', {cx:dx + dw - 5, cy:dy + dh * 0.62, r:1.6, fill:'var(--lit)'}, svg);
+      el('ellipse', {cx:SC, cy:dy - 10, rx:Math.max(12, n.length * 4 + 7), ry:7.5, fill:'var(--enamel)', stroke:'#fff', 'stroke-width':1.2}, svg);
+      el('text', {x:SC, y:dy - 6, 'text-anchor':'middle', class:'plate'}, svg, n);
+    }
     y += h;
   }
+  // the yard: a bike and a geranium planter
+  const bx = X0 + BW + 10, gy = groundY;
+  const bike = el('g', {fill:'none', stroke:'var(--ink)', 'stroke-width':1.5, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, svg);
+  el('circle', {cx:bx + 7, cy:gy - 8, r:7}, bike); el('circle', {cx:bx + 31, cy:gy - 8, r:7}, bike);
+  el('path', {d:`M${bx + 7} ${gy - 8}L${bx + 15} ${gy - 19}H${bx + 27}L${bx + 31} ${gy - 8}M${bx + 15} ${gy - 19}L${bx + 19} ${gy - 8}L${bx + 27} ${gy - 19}M${bx + 12} ${gy - 22}h6M${bx + 27} ${gy - 19}l-1 -5h5`}, bike);
+  el('rect', {x:bx + 43, y:gy - 10, width:17, height:10, rx:1.5, fill:'var(--roof)'}, svg);
+  el('circle', {cx:bx + 51.5, cy:gy - 17, r:9, fill:'var(--leaf)'}, svg);
+  [[-4, -20], [3, -15], [2, -23], [-2, -13]].forEach(([dx, dy]) => el('circle', {cx:bx + 51.5 + dx, cy:gy + dy, r:2, fill:'var(--geranium)'}, svg));
   const unknown = ROWS.length - known.length;
-  $('#bcap').textContent = `One window per apartment, on its floor. Lit windows match your search.${unknown ? ` ${unknown} ads don't give a floor.` : ''}`;
+  $('#bcap').textContent = `One window per apartment, on its floor. Lit windows with geraniums match your search; the house number is how many do.${unknown ? ` ${unknown} ads don't give a floor.` : ''}`;
 }
 
 // ---------- charts ----------
@@ -418,13 +496,14 @@ function drawMap(){
   LAKES.forEach(l => el('path', {d:'M' + l.map(([e, n]) => X(e).toFixed(1) + ' ' + Y(n).toFixed(1)).join('L') + 'Z', fill:'var(--lake)'}, g));
   const [he, hn] = lv(HB.lat, HB.lon);
   for (let k = 10; k <= 60; k += 10){
-    el('circle', {cx:X(he), cy:Y(hn), r:k * s, fill:'none', stroke:'var(--line)', 'stroke-dasharray':'3 4'}, g);
+    el('circle', {cx:X(he), cy:Y(hn), r:k * s, fill:'none', stroke:'var(--enamel)', 'stroke-opacity':.35, 'stroke-width':1.6, 'stroke-linecap':'round', 'stroke-dasharray':'0.1 6'}, g);
     el('text', {x:X(he) + 4, y:Y(hn) - k * s - 4, class:'lbl'}, g, k + ' km');
   }
   dots(g, X, Y, r => r.E, r => r.N);
-  el('rect', {x:X(he) - 6, y:Y(hn) - 6, width:12, height:12, rx:2, fill:'var(--hb)'}, g);
-  el('path', {d:`M${X(he) - 3.5} ${Y(hn)}h7M${X(he)} ${Y(hn) - 3.5}v7`, stroke:'#fff', 'stroke-width':2}, g);
-  el('text', {x:X(he) + 10, y:Y(hn) + 4, class:'lbl', style:'fill:var(--ink);font-weight:600'}, g, 'Zürich HB');
+  const hx = X(he), hy = Y(hn); // a plain station clock: white face, two hands
+  el('circle', {cx:hx, cy:hy, r:10, fill:'#fff', stroke:'#1A2230', 'stroke-width':2.2}, g);
+  el('path', {d:`M${hx} ${hy}V${hy - 6.5}M${hx} ${hy}L${hx + 5} ${hy + 2}`, stroke:'#1A2230', 'stroke-width':1.8, 'stroke-linecap':'round'}, g);
+  el('text', {x:hx + 14, y:hy + 4, class:'lbl', style:'fill:var(--ink);font-weight:700'}, g, 'Zürich HB');
 }
 
 function drawSize(){
