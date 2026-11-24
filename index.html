@@ -81,6 +81,7 @@ a{color:var(--link)}
 .search{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:28px;margin-top:22px}
 .ctrls{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 22px}
 .ctrl label{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;font-weight:500}
+.ctrls.fin{margin:4px 0 10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 .ctrl output{font:600 .95rem var(--sign);color:var(--link);white-space:nowrap;font-variant-numeric:tabular-nums}
 input[type=range]{width:100%;accent-color:var(--enamel);margin:6px 0 0}
 select{font:inherit;font-size:.85rem;width:100%;margin-top:4px;padding:5px 6px;border:1px solid var(--line);border-radius:4px;background:var(--sheet);color:var(--ink)}
@@ -201,7 +202,7 @@ a.card{text-decoration:none}
     <section class="panel"><h2>What a shorter commute costs</h2><p class="sub">Door to Zürich HB on a Tuesday 07:30 departure, against price per m².</p><svg id="commute" role="img" aria-label="Commute time against price per square metre"></svg></section>
     <section class="panel"><h2>How tight is each Gemeinde?</h2><p class="sub">Empty-dwelling rate on 1 June 2026, Gemeinden with matching listings. Low means scarce housing and prices that tend to hold.</p><svg id="vac" role="img" aria-label="Vacancy rate by Gemeinde"></svg></section>
     <section class="panel"><h2>When the buildings went up</h2><p class="sub">Year built, by decade.</p><svg id="year" role="img" aria-label="Listings by decade built"></svg></section>
-    <section class="panel"><h2>Buy or rent?</h2><p class="sub">Asking price against the net rent the same flat would fetch nearby. Diagonals mark how many years of rent the price equals; lower is cheaper relative to renting.</p><svg id="ptr" role="img" aria-label="Asking price against expected monthly rent"></svg></section>
+    <section class="panel"><h2>Buy or rent?</h2><p class="sub">Asking price against the net rent the same flat would fetch nearby. Owning saves that rent but costs mortgage interest and upkeep; what is left each year pays your down payment back. Diagonals mark how many years that takes. Above the red line it never does.</p><div class="ctrls fin" id="fin"></div><svg id="ptr" role="img" aria-label="Asking price against expected monthly rent, with down-payment payback lines"></svg></section>
   </div>
 
   <section class="method panel notice">
@@ -217,6 +218,7 @@ a.card{text-decoration:none}
     <div><h3>How it is worked out</h3><ul>
       <li>Door to door = walking to the nearest stop at 12 min per km (straight line) + the trip from that stop.</li>
       <li>Expected rent = median net rent per m² of unfurnished rentals of similar size (−30% to +40%) within 1.5 km, widening up to 12 km until 8 are found, times the flat's m². Ads with only a gross rent count at 90%, the net share seen in ads that give both.</li>
+      <li>Down payment back = down payment ÷ (yearly net rent − mortgage interest − upkeep). Nebenkosten are paid either way, so they cancel. Amortisation, Eigenmietwert tax, the interest deduction, purchase fees and what the down payment would earn invested are left out.</li>
       <li>Each criterion becomes a percentile among the listings that pass your limits, then the weights average them into a 0–100 score.</li>
       <li>Year built comes from the listing, or from the ad text ("Baujahr 1998"). "Erstbezug" or "Neubau" without a year counts as 2026.</li>
     </ul></div>
@@ -270,6 +272,17 @@ const CTRL = [
   {k:'year',  label:'Built in or after', min:1900, max:2026, step:1, v:1900, out:v => v <= 1900 ? 'any' : String(v)},
 ];
 const F = Object.fromEntries(CTRL.map(c => [c.k, c.v])); F.floor = 'any';
+// financing, in % (10-year fixed was ~1.8% in mid-2026; Swiss banks want at least 20% down)
+const FINC = [
+  {k:'down',   label:'Down payment', min:20, max:60, step:5, v:20, out:v => v + '%'},
+  {k:'rate',   label:'Mortgage rate', min:0.5, max:4, step:0.1, v:1.8, out:v => v.toFixed(1) + '%'},
+  {k:'upkeep', label:'Upkeep, % of price', min:0, max:2, step:0.1, v:0.7, out:v => v.toFixed(1) + '%'},
+];
+const FIN = Object.fromEntries(FINC.map(c => [c.k, c.v]));
+const ownRate = () => (1 - FIN.down / 100) * FIN.rate / 100 + FIN.upkeep / 100; // yearly owning cost as a share of price
+// years until the rent saved, minus interest and upkeep, adds up to the down payment
+function payback(r){ if (!r.rent) return null; const s = 12 * r.rent - r.price * ownRate(); return s > 0 ? FIN.down / 100 * r.price / s : Infinity; }
+const payTxt = p => p == null ? '?' : p === Infinity ? 'never' : p > 100 ? 'over 100 years' : Math.round(p) + ' years';
 let DATA, ROWS = [], sel = null;
 
 function passes(r){
@@ -281,7 +294,7 @@ function passes(r){
     && (F.floor === 'any' || (r.floor != null && (F.floor === 'up' ? r.floor >= 1 : r.floor >= 2)));
 }
 function score(){
-  ROWS.forEach(r => { r.ok = passes(r); r.score = null; r.parts = {}; });
+  ROWS.forEach(r => { r.ok = passes(r); r.score = null; r.parts = {}; r.pay = payback(r); });
   const M = ROWS.filter(r => r.ok), wsum = CRIT.reduce((s, c) => s + W[c.k], 0);
   if (!M.length) return M;
   for (const c of CRIT){
@@ -300,13 +313,15 @@ const qcol = s => s == null ? 'var(--faint)' : 'var(--q' + Math.min(5, 1 + Math.
 
 // ---------- tooltip & selection ----------
 const tip = $('#tip');
-function tipHTML(r){ return `<b>${esc(r.gname || r.city)}</b> · ${chf(r.price)}<br>${roomsTxt(r.rooms)} · ${r.m2 ?? '?'} m² · ${floorTxt(r.floor)} · ${r.year ?? 'year ?'}<br>${r.door != null ? r.door + ' min to HB' : 'commute ?'} · ${r.ppm ? fmt(r.ppm) + ' CHF/m²' : ''}${r.ptr ? ' · ' + r.ptr + '× annual rent' : ''}${r.ok ? '<br>Score ' + Math.round(r.score) : '<br>Outside your limits'}`; }
+function tipHTML(r){ return `<b>${esc(r.gname || r.city)}</b> · ${chf(r.price)}<br>${roomsTxt(r.rooms)} · ${r.m2 ?? '?'} m² · ${floorTxt(r.floor)} · ${r.year ?? 'year ?'}<br>${r.door != null ? r.door + ' min to HB' : 'commute ?'} · ${r.ppm ? fmt(r.ppm) + ' CHF/m²' : ''}${r.ptr ? ' · ' + r.ptr + '× annual rent<br>Down payment back: ' + payTxt(r.pay) : ''}${r.ok ? '<br>Score ' + Math.round(r.score) : '<br>Outside your limits'}`; }
 function showTip(ev, html){ tip.innerHTML = html; tip.hidden = false; const w = tip.offsetWidth, h = tip.offsetHeight;
   tip.style.left = Math.min(ev.clientX + 14, innerWidth - w - 8) + 'px'; tip.style.top = (ev.clientY + 14 + h > innerHeight ? ev.clientY - h - 10 : ev.clientY + 14) + 'px'; }
-// every mark is a real link to the ad (window.open is blocked for most viewers); select after the click so the redraw doesn't eat the navigation
-function hook(node, r){ const a = el('a', {href:r.url, target:'_blank', rel:'noopener'}); node.parentNode.insertBefore(a, node); a.appendChild(node);
-  node.addEventListener('mousemove', e => showTip(e, tipHTML(r) + '<br><i>Click to open the ad</i>')); node.addEventListener('mouseleave', () => tip.hidden = true);
-  a.addEventListener('click', () => { tip.hidden = true; setTimeout(() => select(r.id)); }); }
+// first click selects; only the selected flat's mark is a real link (window.open is blocked for most viewers), so a second click opens the ad
+function hook(node, r){ const on = r.id === sel;
+  if (on){ const a = el('a', {href:r.url, target:'_blank', rel:'noopener'}); node.parentNode.insertBefore(a, node); a.appendChild(node); }
+  node.style.cursor = 'pointer';
+  node.addEventListener('mousemove', e => showTip(e, tipHTML(r) + `<br><i>${on ? 'Click again to open the ad' : 'Click to select, again to open the ad'}</i>`)); node.addEventListener('mouseleave', () => tip.hidden = true);
+  node.addEventListener('click', () => { tip.hidden = true; if (!on) select(r.id); }); }
 function select(id, scroll){ sel = id; render(); if (scroll) $('#detail').scrollIntoView({behavior:'smooth', block:'nearest'}); }
 
 // ---------- controls ----------
@@ -324,6 +339,14 @@ function buildControls(){
   d.innerHTML = `<label for="f-floor">Floor</label><select id="f-floor"><option value="any">Any floor</option><option value="up">Not the ground floor</option><option value="2">2nd floor or higher</option></select>`;
   box.appendChild(d);
   d.querySelector('select').addEventListener('change', e => { F.floor = e.target.value; render(); });
+  for (const c of FINC){
+    const d = document.createElement('div'); d.className = 'ctrl';
+    d.innerHTML = `<label for="fin-${c.k}">${c.label}<output></output></label><input type="range" id="fin-${c.k}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.v}">`;
+    $('#fin').appendChild(d);
+    const inp = d.querySelector('input'), out = d.querySelector('output');
+    const upd = () => { FIN[c.k] = +inp.value; out.textContent = c.out(FIN[c.k]); };
+    inp.addEventListener('input', () => { upd(); render(); }); upd();
+  }
   const wb = $('#weights');
   for (const c of CRIT){
     const r = document.createElement('div'); r.className = 'wrow';
@@ -344,13 +367,14 @@ function chips(r){
   return out.join('');
 }
 function card(r, i){
-  return `<a class="card ${r.id === sel ? 'on' : ''}" data-id="${r.id}" href="${r.url}" target="_blank" rel="noopener">
+  const on = r.id === sel;
+  return `<a class="card ${on ? 'on' : ''}" data-id="${r.id}" ${on ? `href="${r.url}" target="_blank" rel="noopener" title="Click again to open the ad"` : 'tabindex="0" role="button" title="Click to select, again to open the ad"'}>
     <div class="top"><span class="place">${esc(r.gname || r.city)}${r.kt ? ' <span class="kt">' + r.kt + '</span>' : ''}</span><span class="nr">Nr. ${i + 1}</span></div>
     <div class="ttl">${esc(r.title)}</div>
     <div><div class="price">${chf(r.price)}</div><div class="ppm">${r.ppm ? fmt(r.ppm) + ' CHF/m²' : 'area unknown'} · score ${Math.round(r.score)}</div></div>
     <div class="spec">${roomsTxt(r.rooms)} · ${r.m2 ?? '?'} m² · ${floorTxt(r.floor)} · ${r.year ?? 'year ?'}</div>
     <div class="meta">${r.door != null ? `<b>${r.door} min</b> to Zürich HB from ${esc(r.station)}${r.transfers ? ', ' + r.transfers + ' change' + (r.transfers > 1 ? 's' : '') : ', direct'}` : 'No commute data'}</div>
-    <div class="meta">${r.rent ? `Would rent for ≈ <b>${chf(r.rent)}</b>/mo · price = <b>${r.ptr}</b> years of rent` : 'No rent estimate'}</div>
+    <div class="meta">${r.rent ? `Rents for ≈ <b>${chf(r.rent)}</b>/mo · down payment back ${r.pay === Infinity ? '<b>never</b> at ' + FIN.rate.toFixed(1) + '%' : 'in <b>' + payTxt(r.pay) + '</b>'}` : 'No rent estimate'}</div>
     ${sbar(r)}<div class="chips">${chips(r)}</div></a>`;
 }
 function drawCards(M){
@@ -358,7 +382,7 @@ function drawCards(M){
   $('#listnote').textContent = M.length ? `top ${Math.min(6, M.length)} of ${M.length}` : '';
   if (!M.length){ box.innerHTML = '<p class="empty"><b>Leider nichts frei.</b> No listing passes all your limits. Loosen the budget or the commute first; they cut the most.</p>'; return; }
   box.innerHTML = M.slice(0, 6).map(card).join('');
-  box.querySelectorAll('.card').forEach(b => b.addEventListener('click', () => setTimeout(() => select(+b.dataset.id))));
+  box.querySelectorAll('.card:not(.on)').forEach(b => { const go = () => select(+b.dataset.id); b.addEventListener('click', go); b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } }); });
 }
 function drawDetail(){
   const r = ROWS.find(x => x.id === sel), box = $('#detail');
@@ -380,6 +404,8 @@ function drawDetail(){
       <div>Straight line to HB<b>${r.km} km</b></div>
       <div>Expected net rent<b>${r.rent ? chf(r.rent) + '/mo' : '?'}</b></div>
       <div>Price-to-rent${r.rent_n ? ` (${r.rent_n} rentals ≤ ${r.rent_km} km)` : ''}<b>${r.ptr ? r.ptr + ' years of rent' : '?'}</b></div>
+      <div>Owning cost (interest + upkeep)<b>${chf(r.price * ownRate() / 12)}/mo</b></div>
+      <div>Down payment ${FIN.down}% · ${chf(r.price * FIN.down / 100)}<b>${r.rent ? (r.pay === Infinity ? 'never back' : 'back in ' + payTxt(r.pay)) : '?'}</b></div>
       <div>Gemeinde vacancy 2026<b>${r.vac != null ? r.vac.toFixed(2) + '%' : '?'}${r.vac_sale != null ? ' · ' + r.vac_sale + ' for sale' : ''}</b></div>
       <div>Features<b style="font-family:var(--body);font-weight:500;font-size:.85rem">${r.attrs.filter(a => A[a]).map(a => A[a]).join(', ') || '—'}</b></div>
     </div>${r.ok ? '<div style="grid-column:1/-1">' + sbar(r) + '</div>' : ''}`;
@@ -542,11 +568,17 @@ function drawPtr(){
   const svg = $('#ptr'), rs = ROWS.filter(r => r.rent);
   const xm = q(rs.map(r => r.rent), 0.98) * 1.08, ym = q(rs.map(r => r.price), 0.98) * 1.05;
   const {X, Y} = frame(svg, 560, 380, {l:64, r:16, t:26, b:34}, [0, xm], [0, ym], ticks(0, xm), ticks(0, ym), v => fmt(v), v => v ? (v / 1e6).toLocaleString('de-CH') + ' Mio' : '0', 'expected net rent, CHF per month', 'asking price, CHF');
-  const g = el('g', {}, svg);
-  for (const k of [20, 30, 40, 50]){
-    const slope = k * 12, x2 = Math.min(xm, ym / slope), y2 = x2 * slope;
+  const g = el('g', {}, svg), c = ownRate(), d = FIN.down / 100;
+  const end = slope => { const x2 = Math.min(xm, ym / slope); return [x2, x2 * slope]; };
+  // price/(12·rent) = 1/(d/T + c) for payback T; T → ∞ is break-even
+  const [bx, by] = end(12 / c);
+  el('path', {d:`M${X(0)} ${Y(0)}L${X(bx)} ${Y(by)}${bx >= xm ? `L${X(xm)} ${Y(ym)}` : ''}L${X(0)} ${Y(ym)}Z`, fill:'var(--geranium)', 'fill-opacity':.07}, g);
+  el('line', {x1:X(0), y1:Y(0), x2:X(bx), y2:Y(by), stroke:'var(--geranium)', 'stroke-width':1.5}, g);
+  el('text', {x:X(bx) - 4, y:Y(by) - 6, 'text-anchor':'end', class:'lbl', style:'fill:var(--geranium)'}, g, 'never pays back');
+  for (const T of [10, 20, 30]){
+    const [x2, y2] = end(12 / (d / T + c));
     el('line', {x1:X(0), y1:Y(0), x2:X(x2), y2:Y(y2), stroke:'var(--line)', 'stroke-width':1.5, 'stroke-dasharray':'2 4'}, g);
-    el('text', {x:X(x2) - 4, y:Y(y2) + (x2 < xm ? 12 : -4), 'text-anchor':'end', class:'lbl'}, g, k + ' years');
+    el('text', {x:X(x2) - 4, y:Y(y2) + (x2 < xm ? 12 : -4), 'text-anchor':'end', class:'lbl'}, g, T + ' years');
   }
   dots(svg, X, Y, r => r.rent, r => r.price, (x, y) => [clamp(x, X(0), X(xm)), clamp(y, Y(ym), Y(0))]);
 }
