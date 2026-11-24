@@ -1,0 +1,6 @@
+data/lwz.csv
+data/plz.zip
+data/plz/
+# full Flatfox ads (descriptions, agency details): re-fetched by build.py, not republished
+data/02_listings.json
+__pycache__/

@@ -1,0 +1,530 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Apartment Atlas Zürich</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: architect's drafting sheet. Hero = the whole market drawn as one apartment block (one window per listing), then a search panel, a ranked shortlist, and a two-column chart grid. */
+:root{
+  --paper:#F3F5F1; --sheet:#FCFCFB; --ink:#14202B; --muted:#5E6A72; --line:#D6DCD9; --grid:rgba(31,95,173,.06); --gl:#E4E8E5;
+  --blue:#1F5FAD; --lit:#F2B632; --glass:#C6D0D7; --wall:#E8E3D8; --wall-line:#B9B2A3; --lake:#BCD8EA; --hb:#D52B1E; --faint:#C3C9C6; --sel:#D52B1E;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300;
+  --q1:#86b6ef; --q2:#5598e7; --q3:#2a78d6; --q4:#1c5cab; --q5:#104281;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1317; --sheet:#151C21; --ink:#E6EBEE; --muted:#97A3AB; --line:#2A353D; --grid:rgba(111,166,232,.05); --gl:#222C33;
+  --blue:#7AAEEA; --lit:#F7C548; --glass:#2A3944; --wall:#1E272D; --wall-line:#3A4750; --lake:#2A5778; --hb:#E5483C; --faint:#3C474F; --sel:#FF6A5C;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#0ca30c;
+  --q1:#184f95; --q2:#256abf; --q3:#3987e5; --q4:#6da7ec; --q5:#9ec5f4; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#0E1317; --sheet:#151C21; --ink:#E6EBEE; --muted:#97A3AB; --line:#2A353D; --grid:rgba(111,166,232,.05); --gl:#222C33;
+  --blue:#7AAEEA; --lit:#F7C548; --glass:#2A3944; --wall:#1E272D; --wall-line:#3A4750; --lake:#2A5778; --hb:#E5483C; --faint:#3C474F; --sel:#FF6A5C;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#0ca30c;
+  --q1:#184f95; --q2:#256abf; --q3:#3987e5; --q4:#6da7ec; --q5:#9ec5f4; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background-color:var(--paper);color:var(--ink);font:15px/1.5 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:800;font-stretch:112%;line-height:1;letter-spacing:-.01em}
+h2{font-size:1.15rem;font-weight:700;font-stretch:105%}
+a{color:var(--blue)}
+.mono,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font:500 .72rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+/* hero */
+.hero{padding-block:36px 12px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px;align-items:end}
+.lede{max-width:34rem;color:var(--muted);font-size:1.02rem;margin:14px 0 18px}
+.lede b{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:8px 20px;font:500 .8rem/1.3 var(--mono);color:var(--muted)}
+.facts b{display:block;font:700 1.35rem/1.1 var(--display);font-stretch:100%;color:var(--ink)}
+.block{min-width:0}
+.block svg{width:100%;height:auto;display:block}
+.block figcaption{font-size:.8rem;color:var(--muted);margin-top:6px}
+.lbl{font:500 11px var(--mono);fill:var(--muted)}
+.win{cursor:pointer}
+
+/* panels */
+.panel{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:18px 20px;min-width:0}
+.panel .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+.search{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:28px;margin-top:20px}
+.ctrls{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 22px}
+.ctrl label{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;font-weight:500}
+.ctrl output{font-family:var(--mono);font-size:.8rem;color:var(--blue);white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--blue);margin:6px 0 0}
+select{font:inherit;font-size:.85rem;width:100%;margin-top:4px;padding:5px 6px;border:1px solid var(--line);border-radius:4px;background:var(--sheet);color:var(--ink)}
+.weights{display:grid;gap:10px}
+.wrow{display:grid;grid-template-columns:12px minmax(0,1fr) 92px 58px;align-items:center;gap:10px;font-size:.85rem}
+.wrow input{margin:0}
+.wrow output{font:500 .75rem var(--mono);color:var(--muted)}
+.sw{width:12px;height:12px;border-radius:3px}
+.count{font:500 .82rem var(--mono);color:var(--muted);margin-top:14px}
+.count b{color:var(--ink)}
+
+/* shortlist */
+.listhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px;margin:34px 0 12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;min-width:0}
+.card:hover{border-color:var(--blue)}
+a.card{text-decoration:none}
+.card.on{border-color:var(--sel);box-shadow:0 0 0 1px var(--sel)}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card .place{font:700 1.05rem/1.2 var(--display);font-stretch:100%;overflow-wrap:anywhere}
+.card .rank{font:500 .75rem var(--mono);color:var(--muted);white-space:nowrap}
+.card .price{font:700 1.35rem/1 var(--display);font-stretch:95%}
+.card .ppm{font:500 .75rem var(--mono);color:var(--muted)}
+.card .spec{font:500 .8rem/1.4 var(--mono);color:var(--ink)}
+.card .meta{font-size:.8rem;color:var(--muted);line-height:1.4}
+.card .ttl{font-size:.8rem;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.sbar{display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden;background:var(--gl)}
+.sbar i{display:block;height:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 .7rem/1 var(--mono);padding:4px 6px;border-radius:3px;border:1px solid var(--line);color:var(--muted)}
+.chip.good{color:var(--ink);border-color:var(--blue)}
+.empty{grid-column:1/-1;color:var(--muted);padding:20px 0}
+
+/* detail */
+.detail{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 24px;align-items:start}
+.detail h3{font-size:1.4rem;font-weight:800;font-stretch:105%}
+.detail .open{align-self:center;font:600 .85rem var(--body);background:var(--blue);color:var(--sheet);padding:9px 14px;border-radius:4px;text-decoration:none;white-space:nowrap}
+.kv{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 18px;margin-top:6px}
+.kv div{font-size:.78rem;color:var(--muted)}
+.kv b{display:block;font:600 .95rem var(--mono);color:var(--ink)}
+
+/* charts */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.78rem;color:var(--muted);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:12px}
+.grid2 svg{width:100%;height:auto;display:block}
+.axis text{font:400 11px var(--mono);fill:var(--muted)}
+.axis .al{font:500 11px var(--body);fill:var(--muted)}
+.gl{stroke:var(--gl);stroke-width:1}
+.dot{cursor:pointer}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--sheet);font-size:.78rem;line-height:1.4;padding:8px 10px;border-radius:4px;max-width:260px}
+#tip b{font-weight:600}
+
+/* method */
+.method{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-block:34px 48px;font-size:.85rem;color:var(--muted)}
+.method h3{font-size:1rem;color:var(--ink);margin-bottom:6px}
+.method ul{margin:0;padding-left:18px}
+.method li{margin-bottom:4px}
+
+@media (max-width:900px){
+  .hero .wrap,.search,.grid2,.method{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="hero"><div class="wrap">
+  <div>
+    <div class="eyebrow">Wohnungskauf · Zürich commuter belt</div>
+    <h1>Apartment Atlas Zürich</h1>
+    <p class="lede" id="lede">Loading the listings…</p>
+    <div class="facts" id="facts"></div>
+  </div>
+  <figure class="block" style="margin:0">
+    <svg id="building" role="img" aria-label="Every listing drawn as one window, stacked by floor"></svg>
+    <figcaption id="bcap">One window per apartment, on its floor. Lit windows match your search.</figcaption>
+  </figure>
+</div></header>
+
+<main class="wrap">
+  <section class="search">
+    <div class="panel">
+      <h2>What you need</h2>
+      <p class="sub">Hard limits. A listing outside any of them drops out of the ranking.</p>
+      <div class="ctrls" id="ctrls"></div>
+      <div class="count" id="count"></div>
+    </div>
+    <div class="panel">
+      <h2>What matters most</h2>
+      <p class="sub">Each listing is ranked against the others that pass your limits. The colours are reused in the score bars.</p>
+      <div class="weights" id="weights"></div>
+    </div>
+  </section>
+
+  <div class="listhead"><h2>Best fits right now</h2><span class="eyebrow" id="listnote"></span></div>
+  <div class="cards" id="cards"></div>
+  <section class="panel detail" id="detail" hidden></section>
+
+  <div class="listhead"><h2>The market around Zürich</h2>
+    <div class="legend" id="legend"></div></div>
+  <div class="grid2">
+    <section class="panel"><h2>Where they are</h2><p class="sub">Straight-line rings every 10 km from Zürich HB.</p><svg id="map" role="img" aria-label="Map of listings around Zürich"></svg></section>
+    <section class="panel"><h2>Price against living area</h2><p class="sub">Diagonals mark equal price per m².</p><svg id="size" role="img" aria-label="Price against living area"></svg></section>
+    <section class="panel"><h2>What a shorter commute costs</h2><p class="sub">Door to Zürich HB on a Tuesday 07:30 departure, against price per m².</p><svg id="commute" role="img" aria-label="Commute time against price per square metre"></svg></section>
+    <section class="panel"><h2>How tight is each Gemeinde?</h2><p class="sub">Empty-dwelling rate on 1 June 2026, Gemeinden with matching listings. Low means scarce housing and prices that tend to hold.</p><svg id="vac" role="img" aria-label="Vacancy rate by Gemeinde"></svg></section>
+    <section class="panel"><h2>When the buildings went up</h2><p class="sub">Year built, by decade.</p><svg id="year" role="img" aria-label="Listings by decade built"></svg></section>
+    <section class="panel"><h2>Price per m² by distance</h2><p class="sub">Straight-line km from Zürich HB.</p><svg id="dist" role="img" aria-label="Price per square metre against distance"></svg></section>
+  </div>
+
+  <section class="method">
+    <div><h3>Where the data comes from</h3><ul>
+      <li><a href="https://flatfox.ch" target="_blank" rel="noopener">Flatfox</a> public listings API: price, area, rooms, floor, year built, location.</li>
+      <li><a href="https://stats.swiss/vis?lc=de&df%5bds%5d=disseminate&df%5bid%5d=DF_LWZ_1&df%5bag%5d=CH1.LWZ" target="_blank" rel="noopener">BFS Leerwohnungszählung 2026</a>: empty-dwelling rate per Gemeinde, counted on 1 June.</li>
+      <li><a href="https://api3.geo.admin.ch" target="_blank" rel="noopener">swisstopo</a> commune boundaries: which Gemeinde each listing is in.</li>
+      <li><a href="https://transport.opendata.ch" target="_blank" rel="noopener">transport.opendata.ch</a> (SBB timetable): fastest of four trips to Zürich HB.</li>
+    </ul></div>
+    <div><h3>How it is worked out</h3><ul>
+      <li>Door to door = walking to the nearest stop at 12 min per km (straight line) + the trip from that stop.</li>
+      <li>Each criterion becomes a percentile among the listings that pass your limits, then the weights average them into a 0–100 score.</li>
+      <li>Year built comes from the listing, or from the ad text ("Baujahr 1998"). "Erstbezug" or "Neubau" without a year counts as 2026.</li>
+    </ul></div>
+    <div><h3>What it misses</h3><ul>
+      <li>Flatfox only. Homegate and ImmoScout24 carry most sale listings but offer no public API.</li>
+      <li>Asking prices, not sale prices. Ads without a price are left out.</li>
+      <li>Vacancy counts all dwellings, rented and owned. Tax rates, Nebenkosten and renovation funds are not in yet.</li>
+    </ul></div>
+  </section>
+</main>
+<div id="tip" hidden></div>
+
+<script>
+const LAKES = [[[2771.6,1268.7],[2772.7,1267.8],[2773.7,1265.8],[2770.5,1265.9],[2769.5,1265.7],[2769.3,1265.3],[2769,1263.8],[2768.6,1263.4],[2768.1,1263.2],[2766.5,1263.3],[2766.1,1263.5],[2765.9,1264.5],[2765.4,1264.7],[2764.8,1264.5],[2764,1263.5],[2763.4,1263.2],[2762.3,1263.2],[2761.2,1263.4],[2760.2,1263.9],[2759.2,1264.5],[2756.7,1262.3],[2754.9,1261.7],[2747.8,1267.7],[2746.3,1270.6],[2746.1,1271.1],[2745.4,1271.8],[2732.8,1278.9],[2731,1281.5],[2732.8,1281.7],[2732.7,1282.7],[2730.9,1285.2],[2730.3,1286.8],[2729.8,1288.4],[2729.2,1289.9],[2728.2,1291.3],[2726.9,1292.2],[2723.8,1293.4],[2722.5,1294.3],[2720,1296.8],[2719.3,1297.9],[2722.3,1297.5],[2730.2,1292],[2732.3,1291.7],[2732.9,1291.4],[2733.3,1290.4],[2733.8,1288],[2734.1,1287.5],[2741.4,1282.9],[2742.9,1282.5],[2746.1,1282.6],[2747.5,1282.3],[2751.6,1280.4],[2754,1280.1],[2754.7,1279.7],[2755.4,1278.9],[2755.8,1277.9],[2756.1,1276.8],[2756.6,1275.6],[2757.8,1274.2],[2759,1273.6],[2762.1,1273.1],[2765.2,1271.6],[2768.4,1269.4],[2771.6,1268.7]],[[2722.1,1287.1],[2725,1284.7],[2726.8,1281.4],[2718.4,1282.1],[2717.1,1281.6],[2715.9,1280.2],[2713.1,1279.3],[2710.2,1279],[2708.4,1279.4],[2710.9,1279.5],[2712.4,1280.8],[2716.2,1282.9],[2717.5,1284.9],[2713.9,1287.5],[2713.1,1287.9],[2712.9,1288.6],[2713.1,1289.2],[2713.3,1289.5],[2713.8,1289.6],[2714.2,1289.3],[2714.6,1288.9],[2714.9,1288.7],[2715.7,1288.7],[2716.3,1288.5],[2717.5,1288],[2717.5,1288.8],[2715.9,1289.6],[2715.8,1290.2],[2722.1,1287.1]],[[2734.1,1220.6],[2730.9,1221.1],[2728.9,1221.6],[2728.4,1222.5],[2729.8,1222.9],[2736,1222.5],[2741.4,1221.6],[2739.7,1220.9],[2737.3,1220.6],[2734.1,1220.6]],[[2681.1,1214.4],[2679,1216.4],[2678.7,1218.4],[2678.7,1219.7],[2677.4,1223.3],[2677.6,1226.7],[2679.9,1226.5],[2681.3,1223.9],[2680.6,1221.2],[2680.5,1219.9],[2681.6,1218.1],[2682.6,1215.9],[2682.4,1214.2],[2681.1,1214.4]],[[2697.2,1233.6],[2700.2,1233.2],[2702.4,1233.6],[2703.5,1233.7],[2704.4,1232.7],[2705.6,1231.7],[2707.3,1231.7],[2708.4,1231.7],[2711.2,1232],[2713.5,1231.9],[2712.4,1230.7],[2710.6,1230.3],[2708.7,1230.2],[2707.1,1229.3],[2705.7,1228.8],[2703.5,1229.6],[2700.8,1230.2],[2697.9,1229.8],[2696.2,1230.4],[2694.8,1231.8],[2692.9,1233.5],[2690.7,1235],[2688.7,1235.6],[2687.1,1236.8],[2686.2,1238.5],[2685.2,1240.2],[2684.6,1241.5],[2683.8,1243.6],[2683,1246.1],[2684.1,1246.3],[2685.8,1243.5],[2687.7,1239.9],[2691.9,1236.7],[2695.5,1234.7],[2697.2,1233.6]],[[2669.5,1211.3],[2672,1212.3],[2674.6,1214.2],[2675.3,1213.4],[2674,1211.4],[2674.9,1210.2],[2678,1209.3],[2679.8,1207.2],[2681.3,1206.1],[2683.6,1206],[2685.5,1206.4],[2686.8,1207.1],[2688.3,1206.8],[2689.5,1203.7],[2689.7,1200.2],[2689.7,1198.9],[2690.3,1197.4],[2689.8,1195.6],[2688.5,1195],[2688.1,1196.7],[2687.5,1198.6],[2687.4,1201.1],[2688,1204.3],[2687.7,1205.5],[2686.1,1204.8],[2683.2,1203.4],[2680.3,1202.8],[2678.7,1203.3],[2676.7,1203.9],[2674.8,1204.8],[2676.1,1205.9],[2674.2,1207],[2670.1,1206],[2668.9,1204.8],[2668.5,1204.1],[2667.2,1202.6],[2665.1,1201.5],[2664.3,1201.9],[2665.4,1203.3],[2666.7,1205.2],[2666.4,1206.8],[2666.5,1207.8],[2667.3,1207.4],[2668.2,1207.1],[2668.5,1208.9],[2667.9,1211],[2667.8,1212.3],[2668.4,1212.4],[2669.5,1211.3]]];
+const BORDER = [[2757,1265.8],[2759.4,1264.4],[2764.9,1259.7],[2763.9,1251.3],[2758.1,1237.6],[2755.1,1226.7],[2754.9,1218.3],[2755.6,1214.4],[2756.8,1214.5],[2762.7,1214],[2765.7,1214.1],[2775.3,1212.1],[2783,1209.1],[2784.6,1205.6],[2785.7,1201.4],[2795,1195.9],[2805.5,1192.5],[2809,1193.8],[2821.4,1207.9],[2826.5,1205.8],[2829.8,1198.7],[2829.8,1194.8],[2826.8,1180.3],[2826.4,1172.5],[2829.7,1167.5],[2830.2,1163.5],[2829.4,1159.8],[2824.2,1159.3],[2817.2,1161],[2811.1,1167],[2806.7,1166.1],[2802.9,1164.4],[2801.1,1158.4],[2799.6,1151.3],[2800.3,1147.4],[2803.2,1144.5],[2805.5,1138.1],[2807.4,1129.8],[2808.7,1126.1],[2807.4,1124.3],[2803.8,1123],[2800.7,1124.1],[2795,1133.8],[2792.4,1137.6],[2788.2,1138.1],[2780.8,1135.4],[2769.6,1129.5],[2764.9,1129.4],[2761,1130.5],[2757.2,1135.1],[2753.9,1144.1],[2752.7,1149.8],[2750.6,1149.6],[2743.2,1151.1],[2739.9,1148.7],[2740.1,1139.4],[2739.7,1127.8],[2736.2,1120.2],[2726.2,1107],[2722.6,1101.2],[2721.2,1097.1],[2720.9,1093.6],[2722.6,1087.5],[2724.9,1081.7],[2723.1,1078.4],[2717.7,1076.5],[2713.8,1080],[2712.2,1086.3],[2703.8,1094.7],[2707.4,1102],[2706.8,1103.8],[2693,1107.3],[2687,1112.7],[2678.6,1122.1],[2677.1,1126.2],[2677.2,1139.5],[2676.7,1142.8],[2675.6,1144.3],[2671.6,1144.2],[2666.1,1139.5],[2661.1,1132.5],[2650.7,1124.6],[2649.6,1122.9],[2653.2,1115.4],[2653,1112.4],[2644.6,1100.2],[2642.9,1096.2],[2632.1,1088.5],[2627.1,1085.6],[2611.9,1091.2],[2607.7,1091.9],[2601,1088.1],[2591.4,1084.5],[2576,1081],[2570.3,1083.7],[2567.6,1086.1],[2566.3,1089.8],[2562.4,1096.3],[2558.1,1100.2],[2555.1,1104.4],[2551.1,1109],[2548.5,1112.8],[2552.1,1125.1],[2549.6,1129.4],[2548.3,1135.5],[2549.1,1139.7],[2547.7,1140.7],[2533.9,1143.3],[2522.4,1142.6],[2514.1,1138.7],[2507.3,1132],[2506.5,1130.5],[2506.9,1129.3],[2510.1,1123],[2504.3,1116.5],[2495.5,1111.5],[2489.4,1111.1],[2486.7,1112.1],[2486.7,1119.2],[2491.8,1121.7],[2496.5,1126.2],[2498.2,1132.7],[2498.8,1137.2],[2494.1,1142.8],[2494.7,1146.2],[2497.8,1152.5],[2499.6,1158.1],[2502.1,1163],[2511.8,1170.9],[2521.4,1178.8],[2523,1187.3],[2523.8,1197.7],[2525.2,1200.2],[2538.1,1206.2],[2541.3,1208.7],[2543,1212.2],[2553.1,1223.8],[2563.2,1235.3],[2565.2,1239.1],[2566.9,1241.4],[2566.9,1243.3],[2565.7,1244.7],[2560.9,1245.7],[2559.4,1249.4],[2564.5,1255.9],[2571,1259.9],[2577.2,1259.9],[2579.7,1258.1],[2579.6,1255.9],[2582.2,1253.6],[2587,1252.8],[2592.8,1253.6],[2598.6,1256],[2602.2,1261.9],[2604.2,1266.3],[2613.3,1271.4],[2619.5,1268.8],[2636.8,1268.2],[2649.3,1269.7],[2657.1,1273.2],[2666.9,1273.3],[2673.4,1271.4],[2674.6,1271.7],[2676.4,1272.2],[2678.1,1274.1],[2684.3,1275.4],[2685.1,1277],[2684.8,1278.5],[2683.7,1279.3],[2676.1,1278.4],[2673.2,1279.6],[2672.4,1282.4],[2674.8,1287.2],[2680.3,1291.3],[2685,1292.3],[2688.4,1291.3],[2696.8,1284.1],[2698.8,1283.9],[2699.9,1285.2],[2701.6,1286],[2704.5,1284.6],[2707.8,1280.1],[2708.4,1279.4],[2726.8,1281.4],[2731,1281.5],[2743.7,1273.8],[2757,1265.8]];
+const CH_VAC = 0.93; // Swiss empty-dwelling rate, 1 June 2026 (BFS)
+const HB = {lat:47.37772, lon:8.54021};
+const NS = 'http://www.w3.org/2000/svg';
+const $ = s => document.querySelector(s);
+function el(tag, a, parent, text){ const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+const fmt = n => Math.round(n).toLocaleString('de-CH');
+const chf = n => 'CHF ' + fmt(n);
+const mchf = n => (n / 1e6).toLocaleString('de-CH', {maximumFractionDigits:2}) + ' Mio';
+const roomsTxt = r => r == null ? '? Zi.' : (r % 1 ? (Math.floor(r) || '') + '½' : r) + ' Zi.';
+const floorTxt = f => f == null ? 'floor ?' : f < 0 ? 'UG' : f === 0 ? 'EG' : f + '. OG';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function lv(lat, lon){ const p = (lat * 3600 - 169028.66) / 1e4, l = (lon * 3600 - 26782.5) / 1e4;
+  return [(2600072.37 + 211455.93*l - 10938.51*l*p - 0.36*l*p*p - 44.54*l**3) / 1e3, (1200147.07 + 308807.95*p + 3745.25*l*l + 76.63*p*p - 194.56*l*l*p + 119.79*p**3) / 1e3]; }
+function ticks(lo, hi, n = 5){ const raw = (hi - lo) / n, p = 10 ** Math.floor(Math.log10(raw)), st = [1, 2, 2.5, 5, 10].map(k => k * p).find(s => s >= raw); const out = []; for (let t = Math.ceil(lo / st) * st; t <= hi + 1e-9; t += st) out.push(+t.toFixed(10)); return out; }
+const q = (arr, p) => { const s = arr.filter(v => v != null).sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
+const median = arr => q(arr, 0.5);
+
+// ---------- state ----------
+const CRIT = [
+  {k:'ppm',   name:'Low price per m²', v:r => r.ppm,   dir:-1, c:'var(--c1)'},
+  {k:'door',  name:'Short commute',    v:r => r.door,  dir:-1, c:'var(--c2)'},
+  {k:'m2',    name:'More space',       v:r => r.m2,    dir: 1, c:'var(--c3)'},
+  {k:'vac',   name:'Tight market',     v:r => r.vac,   dir:-1, c:'var(--c4)'},
+  {k:'floor', name:'Higher floor',     v:r => r.floor, dir: 1, c:'var(--c5)'},
+  {k:'year',  name:'Newer building',   v:r => r.year,  dir: 1, c:'var(--c6)'},
+];
+const W = {ppm:3, door:3, m2:2, vac:1, floor:1, year:1};
+const LEVEL = ['off', 'low', 'medium', 'high'];
+const CTRL = [
+  {k:'price', label:'Budget up to', min:300000, max:3000000, step:50000, v:1500000, out:v => v >= 3000000 ? 'any' : mchf(v)},
+  {k:'m2',    label:'Living area from', min:30, max:200, step:5, v:70, out:v => v <= 30 ? 'any' : v + ' m²'},
+  {k:'rooms', label:'Rooms from', min:1, max:6, step:.5, v:3.5, out:v => v <= 1 ? 'any' : roomsTxt(v)},
+  {k:'door',  label:'Door to HB within', min:10, max:120, step:5, v:60, out:v => v >= 120 ? 'any' : v + ' min'},
+  {k:'year',  label:'Built in or after', min:1900, max:2026, step:1, v:1900, out:v => v <= 1900 ? 'any' : String(v)},
+];
+const F = Object.fromEntries(CTRL.map(c => [c.k, c.v])); F.floor = 'any';
+let DATA, ROWS = [], sel = null;
+
+function passes(r){
+  return (F.price >= 3000000 || r.price <= F.price)
+    && (F.m2 <= 30 || (r.m2 ?? 0) >= F.m2)
+    && (F.rooms <= 1 || (r.rooms ?? 0) >= F.rooms)
+    && (F.door >= 120 || (r.door ?? 999) <= F.door)
+    && (F.year <= 1900 || (r.year ?? 0) >= F.year)
+    && (F.floor === 'any' || (r.floor != null && (F.floor === 'up' ? r.floor >= 1 : r.floor >= 2)));
+}
+function score(){
+  ROWS.forEach(r => { r.ok = passes(r); r.score = null; r.parts = {}; });
+  const M = ROWS.filter(r => r.ok), wsum = CRIT.reduce((s, c) => s + W[c.k], 0);
+  if (!M.length) return M;
+  for (const c of CRIT){
+    const vals = M.map(c.v).filter(v => v != null).sort((a, b) => a - b), n = vals.length;
+    for (const r of M){
+      const x = c.v(r); let p = 0.5;
+      if (x != null && n > 1){ let lo = 0, eq = 0; for (const v of vals){ if (v < x) lo++; else if (v === x) eq++; } p = (lo + (eq - 1) / 2) / (n - 1); }
+      if (c.dir < 0) p = 1 - p;
+      r.parts[c.k] = wsum ? W[c.k] * p / wsum * 100 : 0;
+    }
+  }
+  M.forEach(r => r.score = wsum ? Object.values(r.parts).reduce((a, b) => a + b, 0) : 50);
+  return M.sort((a, b) => b.score - a.score);
+}
+const qcol = s => s == null ? 'var(--faint)' : 'var(--q' + Math.min(5, 1 + Math.floor(s / 20)) + ')';
+
+// ---------- tooltip & selection ----------
+const tip = $('#tip');
+function tipHTML(r){ return `<b>${esc(r.gname || r.city)}</b> · ${chf(r.price)}<br>${roomsTxt(r.rooms)} · ${r.m2 ?? '?'} m² · ${floorTxt(r.floor)} · ${r.year ?? 'year ?'}<br>${r.door != null ? r.door + ' min to HB' : 'commute ?'} · ${r.ppm ? fmt(r.ppm) + ' CHF/m²' : ''}${r.ok ? '<br>Score ' + Math.round(r.score) : '<br>Outside your limits'}`; }
+function showTip(ev, html){ tip.innerHTML = html; tip.hidden = false; const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(ev.clientX + 14, innerWidth - w - 8) + 'px'; tip.style.top = (ev.clientY + 14 + h > innerHeight ? ev.clientY - h - 10 : ev.clientY + 14) + 'px'; }
+// every mark is a real link to the ad (window.open is blocked for most viewers); select after the click so the redraw doesn't eat the navigation
+function hook(node, r){ const a = el('a', {href:r.url, target:'_blank', rel:'noopener'}); node.parentNode.insertBefore(a, node); a.appendChild(node);
+  node.addEventListener('mousemove', e => showTip(e, tipHTML(r) + '<br><i>Click to open the ad</i>')); node.addEventListener('mouseleave', () => tip.hidden = true);
+  a.addEventListener('click', () => { tip.hidden = true; setTimeout(() => select(r.id)); }); }
+function select(id, scroll){ sel = id; render(); if (scroll) $('#detail').scrollIntoView({behavior:'smooth', block:'nearest'}); }
+
+// ---------- controls ----------
+function buildControls(){
+  const box = $('#ctrls');
+  for (const c of CTRL){
+    const d = document.createElement('div'); d.className = 'ctrl';
+    d.innerHTML = `<label for="f-${c.k}">${c.label}<output id="o-${c.k}"></output></label><input type="range" id="f-${c.k}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.v}">`;
+    box.appendChild(d);
+    const inp = d.querySelector('input'), out = d.querySelector('output');
+    const upd = () => { F[c.k] = +inp.value; out.textContent = c.out(F[c.k]); };
+    inp.addEventListener('input', () => { upd(); render(); }); upd();
+  }
+  const d = document.createElement('div'); d.className = 'ctrl';
+  d.innerHTML = `<label for="f-floor">Floor</label><select id="f-floor"><option value="any">Any floor</option><option value="up">Not the ground floor</option><option value="2">2nd floor or higher</option></select>`;
+  box.appendChild(d);
+  d.querySelector('select').addEventListener('change', e => { F.floor = e.target.value; render(); });
+  const wb = $('#weights');
+  for (const c of CRIT){
+    const r = document.createElement('div'); r.className = 'wrow';
+    r.innerHTML = `<span class="sw" style="background:${c.c}"></span><label for="w-${c.k}">${c.name}</label><input type="range" id="w-${c.k}" min="0" max="3" step="1" value="${W[c.k]}"><output></output>`;
+    wb.appendChild(r);
+    const inp = r.querySelector('input'), out = r.querySelector('output');
+    const upd = () => { W[c.k] = +inp.value; out.textContent = LEVEL[W[c.k]]; };
+    inp.addEventListener('input', () => { upd(); render(); }); upd();
+  }
+}
+
+// ---------- shortlist ----------
+function sbar(r){ return `<div class="sbar" title="Score ${Math.round(r.score)} of 100">${CRIT.filter(c => r.parts[c.k] > 0.05).map(c => `<i style="width:${r.parts[c.k]}%;background:${c.c}"></i>`).join('')}</div>`; }
+function chips(r){
+  const out = [];
+  if (r.ppm) { const d = r.ppm / DATA.median_ppm - 1; out.push(`<span class="chip ${d < -0.1 ? 'good' : ''}">${d >= 0 ? '+' : '−'}${Math.abs(Math.round(d * 100))}% vs median CHF/m²</span>`); }
+  if (r.vac != null) out.push(`<span class="chip ${r.vac < CH_VAC ? 'good' : ''}">vacancy ${r.vac.toFixed(2)}%</span>`);
+  return out.join('');
+}
+function card(r, i){
+  return `<a class="card ${r.id === sel ? 'on' : ''}" data-id="${r.id}" href="${r.url}" target="_blank" rel="noopener">
+    <div class="top"><span class="place">${esc(r.gname || r.city)}${r.kt ? ' <span class="rank">' + r.kt + '</span>' : ''}</span><span class="rank">#${i + 1} · ${Math.round(r.score)}</span></div>
+    <div class="ttl">${esc(r.title)}</div>
+    <div><div class="price">${chf(r.price)}</div><div class="ppm">${r.ppm ? fmt(r.ppm) + ' CHF/m²' : 'area unknown'}</div></div>
+    <div class="spec">${roomsTxt(r.rooms)} · ${r.m2 ?? '?'} m² · ${floorTxt(r.floor)} · ${r.year ?? 'year ?'}</div>
+    <div class="meta">${r.door != null ? `<b>${r.door} min</b> to Zürich HB from ${esc(r.station)}${r.transfers ? ', ' + r.transfers + ' change' + (r.transfers > 1 ? 's' : '') : ', direct'}` : 'No commute data'}</div>
+    ${sbar(r)}<div class="chips">${chips(r)}</div></a>`;
+}
+function drawCards(M){
+  const box = $('#cards');
+  $('#listnote').textContent = M.length ? `top ${Math.min(6, M.length)} of ${M.length}` : '';
+  if (!M.length){ box.innerHTML = '<p class="empty">No listing passes all your limits. Loosen the budget or the commute first; they cut the most.</p>'; return; }
+  box.innerHTML = M.slice(0, 6).map(card).join('');
+  box.querySelectorAll('.card').forEach(b => b.addEventListener('click', () => setTimeout(() => select(+b.dataset.id))));
+}
+function drawDetail(){
+  const r = ROWS.find(x => x.id === sel), box = $('#detail');
+  if (!r){ box.hidden = true; return; }
+  box.hidden = false;
+  const rank = r.ok ? ROWS.filter(x => x.ok && x.score > r.score).length + 1 : null;
+  const A = {lift:'lift', balconygarden:'balcony or garden', garage:'garage', parkingspace:'parking', view:'view', accessiblewithwheelchair:'step-free', fireplace:'fireplace', petsallowed:'pets ok'};
+  box.innerHTML = `<div><div class="eyebrow">Selected · ${r.ok ? 'rank ' + rank + ', score ' + Math.round(r.score) : 'outside your limits'}</div>
+    <h3>${esc(r.title)}</h3><div class="meta" style="color:var(--muted);font-size:.85rem">${esc(r.city)} ${r.zip ?? ''} · Gemeinde ${esc(r.gname)} ${r.kt ?? ''} · listed ${r.published} by ${esc(r.agency || 'private seller')}</div></div>
+    <a class="open" href="${r.url}" target="_blank" rel="noopener">Open on Flatfox ↗</a>
+    <div class="kv">
+      <div>Asking price<b>${chf(r.price)}</b></div>
+      <div>Price per m²<b>${r.ppm ? fmt(r.ppm) : '?'}</b></div>
+      <div>Rooms · area<b>${roomsTxt(r.rooms)} · ${r.m2 ?? '?'} m²</b></div>
+      <div>Floor<b>${floorTxt(r.floor)}</b></div>
+      <div>Built${r.ysrc === 'text' ? ' (from ad text)' : r.ysrc === 'new' ? ' (new build)' : ''}<b>${r.year ?? '?'}${r.reno ? ' · reno ' + r.reno : ''}</b></div>
+      <div>Door to Zürich HB<b>${r.door != null ? r.door + ' min' : '?'}</b></div>
+      <div>Nearest stop<b>${esc(r.station ?? '?')}${r.walk != null ? ' · ' + Math.round(r.walk * 1000) + ' m' : ''}</b></div>
+      <div>Straight line to HB<b>${r.km} km</b></div>
+      <div>Gemeinde vacancy 2026<b>${r.vac != null ? r.vac.toFixed(2) + '%' : '?'}${r.vac_sale != null ? ' · ' + r.vac_sale + ' for sale' : ''}</b></div>
+      <div>Features<b style="font-family:var(--body);font-weight:500;font-size:.85rem">${r.attrs.filter(a => A[a]).map(a => A[a]).join(', ') || '—'}</b></div>
+    </div>${r.ok ? '<div style="grid-column:1/-1">' + sbar(r) + '</div>' : ''}`;
+}
+
+// ---------- the building (hero) ----------
+function drawBuilding(){
+  const svg = $('#building'); svg.replaceChildren();
+  const known = ROWS.filter(r => r.floor != null);
+  const top = Math.min(8, Math.max(...known.map(r => r.floor)));
+  const floors = []; for (let f = top; f >= -1; f--) floors.push(f);
+  const COLS = 26, WW = 13, WH = 15, GX = 5, GY = 6, PAD = 18, LBL = 56;
+  const by = f => known.filter(r => (f === top ? r.floor >= top : f === -1 ? r.floor < 0 : r.floor === f)).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  const rowsOf = f => Math.max(1, Math.ceil(by(f).length / COLS));
+  const fh = f => rowsOf(f) * (WH + GY) + 14;
+  const BW = PAD * 2 + COLS * (WW + GX) - GX, X0 = LBL;
+  const H = 30 + floors.reduce((s, f) => s + fh(f), 0) + 22;
+  svg.setAttribute('viewBox', `0 0 ${X0 + BW + 10} ${H}`);
+  const groundY = 30 + floors.filter(f => f >= 0).reduce((s, f) => s + fh(f), 0);
+  // roof parapet and attic setback
+  el('rect', {x:X0 + BW * 0.55, y:8, width:BW * 0.3, height:22, fill:'var(--wall)', stroke:'var(--wall-line)'}, svg);
+  el('rect', {x:X0 - 6, y:26, width:BW + 12, height:5, fill:'var(--wall-line)'}, svg);
+  // facade above ground, basement below (dashed, as on a section drawing)
+  el('rect', {x:X0, y:31, width:BW, height:groundY - 31, fill:'var(--wall)', stroke:'var(--wall-line)'}, svg);
+  el('rect', {x:X0, y:groundY, width:BW, height:H - 22 - groundY, fill:'none', stroke:'var(--wall-line)', 'stroke-dasharray':'4 3'}, svg);
+  el('line', {x1:0, x2:X0 + BW + 10, y1:groundY, y2:groundY, stroke:'var(--ink)', 'stroke-width':1.5}, svg);
+  let y = 31;
+  for (const f of floors){
+    const list = by(f), h = fh(f);
+    if (f !== top) el('line', {x1:X0, x2:X0 + BW, y1:y, y2:y, stroke:'var(--wall-line)'}, svg);
+    el('text', {x:X0 - 8, y:y + h / 2 + 4, 'text-anchor':'end', class:'lbl'}, svg, (f === top ? '≥' : '') + floorTxt(f));
+    list.forEach((r, i) => {
+      const cx = X0 + PAD + (i % COLS) * (WW + GX), cy = y + 7 + Math.floor(i / COLS) * (WH + GY);
+      const w = el('rect', {x:cx, y:cy, width:WW, height:WH, rx:1.5, class:'win',
+        fill:r.ok ? 'var(--lit)' : 'var(--glass)', stroke:r.id === sel ? 'var(--sel)' : 'none', 'stroke-width':2.5}, svg);
+      hook(w, r);
+    });
+    y += h;
+  }
+  const unknown = ROWS.length - known.length;
+  $('#bcap').textContent = `One window per apartment, on its floor. Lit windows match your search.${unknown ? ` ${unknown} ads don't give a floor.` : ''}`;
+}
+
+// ---------- charts ----------
+function frame(svg, Wd, Ht, m, xd, yd, xt, yt, xf, yf, xlab, ylab){
+  svg.replaceChildren(); svg.setAttribute('viewBox', `0 0 ${Wd} ${Ht}`);
+  const X = v => m.l + (v - xd[0]) / (xd[1] - xd[0]) * (Wd - m.l - m.r), Y = v => Ht - m.b - (v - yd[0]) / (yd[1] - yd[0]) * (Ht - m.t - m.b);
+  const g = el('g', {class:'axis'}, svg);
+  yt.forEach(t => { el('line', {x1:m.l, x2:Wd - m.r, y1:Y(t), y2:Y(t), class:'gl'}, g); el('text', {x:m.l - 6, y:Y(t) + 4, 'text-anchor':'end'}, g, yf(t)); });
+  xt.forEach(t => { el('line', {x1:X(t), x2:X(t), y1:m.t, y2:Ht - m.b, class:'gl'}, g); el('text', {x:X(t), y:Ht - m.b + 16, 'text-anchor':'middle'}, g, xf(t)); });
+  el('text', {x:Wd - m.r, y:Ht - 4, 'text-anchor':'end', class:'al'}, g, xlab);
+  el('text', {x:m.l, y:m.t - 10, class:'al'}, g, ylab);
+  return {X, Y};
+}
+function dots(svg, X, Y, fx, fy, clip){
+  const g = el('g', {}, svg);
+  const order = [...ROWS].sort((a, b) => (a.ok - b.ok) || ((a.score ?? 0) - (b.score ?? 0)));
+  let selPt = null;
+  for (const r of order){
+    const x = fx(r), y = fy(r); if (x == null || y == null) continue;
+    const [cx, cy] = clip ? clip(X(x), Y(y)) : [X(x), Y(y)];
+    const c = el('circle', {cx, cy, r:r.ok ? 5 : 3, fill:qcol(r.ok ? r.score : null), stroke:'var(--sheet)', 'stroke-width':r.ok ? 1.5 : 1, class:'dot'}, g);
+    hook(c, r);
+    if (r.id === sel) selPt = [cx, cy];
+  }
+  if (selPt) el('circle', {cx:selPt[0], cy:selPt[1], r:9, fill:'none', stroke:'var(--sel)', 'stroke-width':2.5, 'pointer-events':'none'}, g);
+}
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+function drawMap(){
+  const svg = $('#map'); svg.replaceChildren();
+  const xs = ROWS.map(r => r.E), ys = ROWS.map(r => r.N);
+  const e0 = Math.min(...xs) - 3, e1 = Math.max(...xs) + 3, n0 = Math.min(...ys) - 3, n1 = Math.max(...ys) + 3;
+  const Wd = 560, s = Wd / (e1 - e0), Ht = Math.round((n1 - n0) * s);
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${Ht}`);
+  const X = e => (e - e0) * s, Y = n => Ht - (n - n0) * s;
+  const defs = el('defs', {}, svg), cp = el('clipPath', {id:'mapclip'}, defs); el('rect', {x:0, y:0, width:Wd, height:Ht}, cp);
+  const g = el('g', {'clip-path':'url(#mapclip)'}, svg);
+  el('rect', {x:0, y:0, width:Wd, height:Ht, fill:'var(--sheet)'}, g);
+  el('path', {d:'M' + BORDER.map(([e, n]) => X(e).toFixed(1) + ' ' + Y(n).toFixed(1)).join('L') + 'Z', fill:'none', stroke:'var(--muted)', 'stroke-width':1, 'stroke-dasharray':'6 3 1 3'}, g);
+  LAKES.forEach(l => el('path', {d:'M' + l.map(([e, n]) => X(e).toFixed(1) + ' ' + Y(n).toFixed(1)).join('L') + 'Z', fill:'var(--lake)'}, g));
+  const [he, hn] = lv(HB.lat, HB.lon);
+  for (let k = 10; k <= 60; k += 10){
+    el('circle', {cx:X(he), cy:Y(hn), r:k * s, fill:'none', stroke:'var(--line)', 'stroke-dasharray':'3 4'}, g);
+    el('text', {x:X(he) + 4, y:Y(hn) - k * s - 4, class:'lbl'}, g, k + ' km');
+  }
+  dots(g, X, Y, r => r.E, r => r.N);
+  el('rect', {x:X(he) - 6, y:Y(hn) - 6, width:12, height:12, rx:2, fill:'var(--hb)'}, g);
+  el('path', {d:`M${X(he) - 3.5} ${Y(hn)}h7M${X(he)} ${Y(hn) - 3.5}v7`, stroke:'#fff', 'stroke-width':2}, g);
+  el('text', {x:X(he) + 10, y:Y(hn) + 4, class:'lbl', style:'fill:var(--ink);font-weight:600'}, g, 'Zürich HB');
+}
+
+function drawSize(){
+  const svg = $('#size'), rs = ROWS.filter(r => r.m2);
+  const xm = Math.min(260, q(rs.map(r => r.m2), 0.99) * 1.05), ym = q(rs.map(r => r.price), 0.98) * 1.05;
+  const {X, Y} = frame(svg, 560, 380, {l:64, r:16, t:26, b:34}, [0, xm], [0, ym], ticks(0, xm), ticks(0, ym), v => v, v => v ? (v / 1e6).toLocaleString('de-CH') + ' Mio' : '0', 'living area, m²', 'asking price, CHF');
+  const g = el('g', {}, svg);
+  for (const k of [6000, 9000, 12000, 15000, 20000]){
+    const x2 = Math.min(xm, ym / k), y2 = x2 * k;
+    el('line', {x1:X(0), y1:Y(0), x2:X(x2), y2:Y(y2), stroke:'var(--line)', 'stroke-dasharray':'2 4'}, g);
+    el('text', {x:X(x2) - 4, y:Y(y2) + (x2 < xm ? 12 : -4), 'text-anchor':'end', class:'lbl'}, g, fmt(k) + '/m²');
+  }
+  dots(svg, X, Y, r => r.m2, r => r.price, (x, y) => [clamp(x, X(0), X(xm)), clamp(y, Y(ym), Y(0))]);
+}
+
+function drawCommute(){
+  const svg = $('#commute'), rs = ROWS.filter(r => r.door != null && r.ppm);
+  const xm = Math.min(150, q(rs.map(r => r.door), 0.99) + 5), y0 = Math.max(0, q(rs.map(r => r.ppm), 0.01) - 1000), y1 = q(rs.map(r => r.ppm), 0.99) + 1000;
+  const {X, Y} = frame(svg, 560, 380, {l:56, r:16, t:26, b:34}, [0, xm], [y0, y1], ticks(0, xm, 6), ticks(y0, y1), v => v, v => fmt(v), 'minutes, door to Zürich HB', 'CHF per m²');
+  // running median of all listings, 15-minute bins
+  const pts = [];
+  for (let b = 0; b < xm; b += 15){ const v = rs.filter(r => r.door >= b && r.door < b + 15).map(r => r.ppm); if (v.length >= 4) pts.push([b + 7.5, median(v)]); }
+  if (pts.length > 1){
+    el('path', {d:'M' + pts.map(([x, y]) => X(x).toFixed(1) + ' ' + Y(y).toFixed(1)).join('L'), fill:'none', stroke:'var(--muted)', 'stroke-width':2, 'stroke-dasharray':'5 4'}, svg);
+    const [lx, ly] = pts[pts.length - 1]; el('text', {x:X(lx), y:Y(ly) - 8, 'text-anchor':'end', class:'lbl'}, svg, 'median, all listings');
+  }
+  dots(svg, X, Y, r => r.door, r => r.ppm, (x, y) => [clamp(x, X(0), X(xm)), clamp(y, Y(y1), Y(y0))]);
+}
+
+function drawDist(){
+  const svg = $('#dist'), rs = ROWS.filter(r => r.ppm);
+  const xm = Math.ceil(Math.max(...rs.map(r => r.km)) / 10) * 10, y0 = Math.max(0, q(rs.map(r => r.ppm), 0.01) - 1000), y1 = q(rs.map(r => r.ppm), 0.99) + 1000;
+  const {X, Y} = frame(svg, 560, 340, {l:56, r:16, t:26, b:34}, [0, xm], [y0, y1], ticks(0, xm, 6), ticks(y0, y1), v => v, v => fmt(v), 'km from Zürich HB, straight line', 'CHF per m²');
+  dots(svg, X, Y, r => r.km, r => r.ppm, (x, y) => [x, clamp(y, Y(y1), Y(y0))]);
+}
+
+function drawVac(M){
+  const svg = $('#vac'); svg.replaceChildren();
+  const G = new Map();
+  for (const r of M) if (r.vac != null){ const g = G.get(r.gde) || {name:r.gname, kt:r.kt, vac:r.vac, sale:r.vac_sale, n:0, best:0}; g.n++; g.best = Math.max(g.best, r.score); G.set(r.gde, g); }
+  let list = [...G.values()].sort((a, b) => b.n - a.n || b.best - a.best).slice(0, 22).sort((a, b) => a.vac - b.vac);
+  const RH = 20, m = {l:150, r:60, t:28, b:30}, Wd = 560, Ht = m.t + m.b + Math.max(1, list.length) * RH;
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${Ht}`);
+  if (!list.length){ el('text', {x:Wd / 2, y:Ht / 2, 'text-anchor':'middle', class:'lbl'}, svg, 'No matching listings'); return; }
+  const xm = Math.max(2, Math.ceil(Math.max(...list.map(g => g.vac)) * 2) / 2);
+  const X = v => m.l + v / xm * (Wd - m.l - m.r);
+  const g0 = el('g', {class:'axis'}, svg);
+  ticks(0, xm, 4).forEach(t => { el('line', {x1:X(t), x2:X(t), y1:m.t - 4, y2:Ht - m.b, class:'gl'}, g0); el('text', {x:X(t), y:Ht - m.b + 16, 'text-anchor':'middle'}, g0, t + '%'); });
+  el('line', {x1:X(CH_VAC), x2:X(CH_VAC), y1:m.t - 6, y2:Ht - m.b, stroke:'var(--ink)', 'stroke-dasharray':'3 3'}, svg);
+  el('text', {x:X(CH_VAC) + 4, y:m.t - 10, class:'lbl', style:'fill:var(--ink)'}, svg, 'Switzerland ' + CH_VAC + '%');
+  list.forEach((g, i) => {
+    const y = m.t + i * RH + RH / 2;
+    el('text', {x:m.l - 8, y:y + 4, 'text-anchor':'end', class:'lbl', style:'fill:var(--ink)'}, svg, (g.name.length > 17 ? g.name.slice(0, 16) + '…' : g.name) + ' ' + (g.kt || ''));
+    const w = Math.max(2, X(g.vac) - m.l);
+    const b = el('rect', {x:m.l, y:y - 6, width:w, height:12, rx:3, fill:'var(--c4)'}, svg);
+    el('text', {x:m.l + w + 6, y:y + 4, class:'lbl'}, svg, g.vac.toFixed(2) + '% · ' + g.n);
+    b.addEventListener('mousemove', e => showTip(e, `<b>${esc(g.name)}</b> ${g.kt || ''}<br>${g.vac.toFixed(2)}% of dwellings empty on 1 June 2026${g.sale != null ? '<br>' + g.sale + ' empty dwellings for sale' : ''}<br>${g.n} matching listing${g.n > 1 ? 's' : ''}`));
+    b.addEventListener('mouseleave', () => tip.hidden = true);
+  });
+  el('text', {x:Wd - m.r + 54, y:Ht - 4, 'text-anchor':'end', class:'lbl'}, svg, 'rate · listings');
+}
+
+function drawYear(){
+  const svg = $('#year'), rs = ROWS.filter(r => r.year);
+  const bins = []; for (let d = 1900; d <= 2020; d += 10) bins.push({d, ok:0, all:0, lab:d === 1900 ? '≤1900s' : "'" + String(d).slice(2) + 's'});
+  for (const r of rs){ const b = bins[clamp(Math.floor((r.year - 1900) / 10), 0, bins.length - 1)]; b.all++; if (r.ok) b.ok++; }
+  const ym = Math.max(...bins.map(b => b.all)) * 1.08;
+  const {X, Y} = frame(svg, 560, 300, {l:40, r:12, t:26, b:34}, [0, bins.length], [0, ym], [], ticks(0, ym, 4), () => '', v => v, 'decade built', 'listings');
+  const bw = X(1) - X(0) - 6;
+  bins.forEach((b, i) => {
+    const x = X(i) + 3;
+    if (b.all > b.ok) el('rect', {x, y:Y(b.all), width:bw, height:Y(b.ok) - Y(b.all) - (b.ok ? 2 : 0), rx:3, fill:'var(--faint)'}, svg);
+    if (b.ok) el('rect', {x, y:Y(b.ok), width:bw, height:Y(0) - Y(b.ok), rx:3, fill:'var(--q3)'}, svg);
+    el('text', {x:x + bw / 2, y:Y(0) + 16, 'text-anchor':'middle', class:'lbl'}, svg, b.lab);
+    const hit = el('rect', {x:x - 3, y:Y(ym), width:bw + 6, height:Y(0) - Y(ym), fill:'transparent'}, svg);
+    hit.addEventListener('mousemove', e => showTip(e, `<b>${b.lab === '≤1900s' ? 'Before 1910' : b.d + '–' + (b.d + 9)}</b><br>${b.ok} match your search<br>${b.all} listings in all`));
+    hit.addEventListener('mouseleave', () => tip.hidden = true);
+  });
+}
+
+function drawLegend(){
+  const q5 = [1, 2, 3, 4, 5].map(i => `<span><i style="background:var(--q${i})"></i>${(i - 1) * 20}–${i * 20}</span>`).join('');
+  $('#legend').innerHTML = `<span style="font-weight:600;color:var(--ink)">Score</span>${q5}<span><i style="background:var(--faint);width:7px;height:7px"></i>outside your limits</span><span><i style="background:none;border:2px solid var(--sel)"></i>selected</span>`;
+}
+
+// ---------- render ----------
+function render(){
+  const M = score();
+  if (sel == null || !ROWS.some(r => r.id === sel)) sel = M[0]?.id ?? null;
+  $('#count').innerHTML = `<b>${M.length}</b> of ${ROWS.length} listings pass your limits`;
+  drawCards(M); drawDetail(); drawBuilding(); drawMap(); drawSize(); drawCommute(); drawVac(M); drawYear(); drawDist();
+}
+
+function init(d){
+  DATA = d; ROWS = d.rows.map(r => { const [E, N] = lv(r.lat, r.lon); return {...r, E, N}; });
+  const ppms = ROWS.map(r => r.ppm);
+  $('#lede').innerHTML = `<b>${ROWS.length} apartments for sale</b> within about an hour of Zürich HB, as listed on Flatfox on ${new Date(d.built).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})}. Set your limits, say what matters, and the best fits rise to the top. Every chart below reacts to your choices.`;
+  $('#facts').innerHTML = `<span><b>${fmt(d.median_ppm)}</b>median CHF/m²</span><span><b>${mchf(median(ROWS.map(r => r.price)))}</b>median price</span><span><b>${median(ROWS.map(r => r.door))} min</b>median door to HB</span><span><b>${CH_VAC}%</b>Swiss vacancy 2026</span>`;
+  buildControls(); drawLegend(); render();
+}
+fetch('listings.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(init)
+  .catch(e => { $('#lede').textContent = 'The listings file could not be loaded (' + e.message + '). Reload the page to try again.'; });
+</script>
